@@ -136,8 +136,9 @@
   <div class="panel">
     <div class="drop" id="drop">
       <strong>Drop images here</strong> or click to choose
-      <small>PNG · JPG · WebP · GIF · BMP — pick as many as you like</small>
-      <input type="file" id="file" accept="image/*" multiple hidden />
+      <small>PNG · JPG · WebP · GIF · BMP · PXC — pick as many as you like.
+        Drop an existing <code>.pxc</code> to re-target it to the other screen.</small>
+      <input type="file" id="file" accept="image/*,.pxc" multiple hidden />
     </div>
     <div class="bar" id="bar" hidden>
       <button class="btn" id="dlAll">Download all</button>
@@ -163,6 +164,10 @@
         <em>Fit</em> letterboxes the whole image; <em>Stretch</em> distorts to fill.</li>
       <li><strong>Invert</strong> — only if a wallpaper shows up looking like a photo negative on your panel;
         leave off for the X4 build.</li>
+      <li><strong>Re-target an existing wallpaper</strong> — drop a <code>.pxc</code> straight in. It's decoded and
+        previewed, and the card shows which reader it was made for (<code>from X3</code> / <code>from X4</code>, or
+        its raw size if neither). Switch <em>Screen</em> to the other reader and it re-fits and re-encodes for it
+        (the badge then reads e.g. <code>X3 → X4</code>).</li>
     </ul>
     <p class="mono">All conversion is local (HTML canvas). No server, no upload.</p>
   </details>
@@ -206,14 +211,60 @@ fileInput.addEventListener("change", e=>addFiles(e.target.files));
 drop.addEventListener("drop", e=>{ if(e.dataTransfer?.files) addFiles(e.dataTransfer.files); });
 document.getElementById("clear").addEventListener("click", ()=>{S.files=[];render();});
 
+// Which reader a given pixel size was authored for (null = neither/custom).
+function deviceForSize(w,h){
+  if(w===528&&h===792) return "X3";
+  if(w===480&&h===800) return "X4";
+  return null;
+}
+
+// Decode a .pxc buffer (4-byte LE width,height header + 2bpp MSB-first, 4 gray
+// levels) into a data URL + its native dimensions. Returns null if malformed.
+function parsePxc(buf){
+  if(buf.byteLength<4) return null;
+  const dv=new DataView(buf), bytes=new Uint8Array(buf);
+  const w=dv.getUint16(0,true), h=dv.getUint16(2,true);
+  if(w<1||h<1||w>4096||h>4096) return null;
+  const stride=(w+3)>>2;
+  if(buf.byteLength < 4+stride*h) return null;
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  const ctx=c.getContext("2d"), im=ctx.createImageData(w,h), d=im.data;
+  for(let y=0;y<h;y++){ const row=4+y*stride;
+    for(let x=0;x<w;x++){ const q=(bytes[row+(x>>2)]>>(6-((x&3)<<1)))&3, v=LEVELS[q], p=(y*w+x)*4;
+      d[p]=d[p+1]=d[p+2]=v; d[p+3]=255; } }
+  ctx.putImageData(im,0,0);
+  return { w, h, dataURL:c.toDataURL() };
+}
+
 function addFiles(list){
-  const imgs=[...list].filter(f=>f.type.startsWith("image/"));
-  let pending=imgs.length; if(!pending) return;
+  const arr=[...list];
+  const imgs=arr.filter(f=>f.type.startsWith("image/"));
+  const pxcs=arr.filter(f=>!f.type.startsWith("image/") && /\.pxc$/i.test(f.name));
+  let pending=imgs.length+pxcs.length; if(!pending) return;
+  const done=()=>{ if(--pending===0) render(); };
   imgs.forEach(f=>{
     const img=new Image();
-    img.onload=()=>{ S.files.push({name:f.name, img}); if(--pending===0) render(); };
-    img.onerror=()=>{ if(--pending===0) render(); };
+    img.onload=()=>{ S.files.push({name:f.name, img}); done(); };
+    img.onerror=done;
     img.src=URL.createObjectURL(f);
+  });
+  pxcs.forEach(f=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const parsed=parsePxc(r.result);
+      if(!parsed){ done(); return; }
+      const img=new Image();
+      // Wait for the decoded bitmap to load so toGray() sees its natural size.
+      img.onload=()=>{
+        S.files.push({name:f.name, img, srcW:parsed.w, srcH:parsed.h,
+                      srcDevice:deviceForSize(parsed.w,parsed.h)});
+        done();
+      };
+      img.onerror=done;
+      img.src=parsed.dataURL;
+    };
+    r.onerror=done;
+    r.readAsArrayBuffer(f);
   });
 }
 
@@ -346,6 +397,16 @@ function buildCard(f){
   const dims=document.createElement("span"); dims.textContent=`${S.w}×${S.h}`;
   const kb=document.createElement("span"); kb.textContent=`${(conv.bytes.length/1024).toFixed(0)} KB`;
   meta.append(tag,dims,kb);
+  // For a .pxc that was dropped in, show which reader it was authored for and,
+  // when the chosen screen differs, that it's being re-targeted to the other one.
+  if(f.srcW){
+    const from = f.srcDevice ? f.srcDevice : `${f.srcW}×${f.srcH}`;
+    const to = deviceForSize(S.w,S.h);
+    const src=document.createElement("span"); src.className="tag";
+    src.style.background="var(--accent-soft)"; src.style.color="var(--sub)";
+    src.textContent = (to && f.srcDevice && to!==f.srcDevice) ? `${from} → ${to}` : `from ${from}`;
+    meta.append(src);
+  }
   const a=document.createElement("a"); a.className="dl"; a.textContent="Download";
   a.href=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"})); a.download=conv.filename;
   card.append(name,meta,a);
