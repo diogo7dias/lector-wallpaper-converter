@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lector Wallpaper Converter</title>
+<style>
+  :root{
+    --paper:#f4f1ea; --ink:#1b1a17; --sub:#6f6a5f; --line:#d9d3c6;
+    --card:#fbf9f4; --accent:#b4531f; --accent-soft:#e7d3c4; --good:#2f6f4f; --bad:#a23a2e;
+    --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--paper:#141311;--ink:#ece7dc;--sub:#9a9384;--line:#2c2a25;
+      --card:#1c1a16;--accent:#e0742f;--accent-soft:#3a2a1c;--good:#7fc79c;--bad:#e0796b;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35);}
+  }
+  :root[data-theme="dark"]{--paper:#141311;--ink:#ece7dc;--sub:#9a9384;--line:#2c2a25;
+    --card:#1c1a16;--accent:#e0742f;--accent-soft:#3a2a1c;--good:#7fc79c;--bad:#e0796b;}
+  :root[data-theme="light"]{--paper:#f4f1ea;--ink:#1b1a17;--sub:#6f6a5f;--line:#d9d3c6;
+    --card:#fbf9f4;--accent:#b4531f;--accent-soft:#e7d3c4;--good:#2f6f4f;--bad:#a23a2e;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:940px;margin:0 auto;padding:28px 20px 80px;}
+  header h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em;}
+  header p{margin:0;color:var(--sub);font-size:14.5px;max-width:60ch;}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px;margin-top:20px;box-shadow:var(--shadow);}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:34px 20px;text-align:center;
+    cursor:pointer;transition:border-color .15s,background .15s;background:var(--card);}
+  .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft);}
+  .drop strong{color:var(--accent);}
+  .drop small{color:var(--sub);display:block;margin-top:6px;font-size:13px;}
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;}
+  .ctl label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--sub);margin-bottom:6px;}
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+  .seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:8px 6px;
+    font-size:13.5px;cursor:pointer;font-family:inherit;}
+  .seg button.on{background:var(--accent);color:#fff;}
+  select{width:100%;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);
+    color:var(--ink);font-size:13.5px;font-family:inherit;}
+  .hint{color:var(--sub);font-size:12.5px;margin-top:12px;}
+  .results{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);}
+  .card canvas{width:100%;height:auto;image-rendering:pixelated;border-radius:6px;
+    background:#fff;border:1px solid var(--line);display:block;}
+  .card .name{font-size:12.5px;margin:9px 0 2px;word-break:break-all;}
+  .card .meta{font-size:11.5px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .tag{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;}
+  .card a.dl{display:block;text-align:center;margin-top:10px;background:var(--accent);color:#fff;
+    text-decoration:none;padding:8px;border-radius:8px;font-size:13.5px;font-weight:600;}
+  .card a.dl:hover{filter:brightness(1.06);}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;}
+  .btn{background:var(--ink);color:var(--paper);border:0;border-radius:9px;padding:9px 16px;
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .count{color:var(--sub);font-size:13px;}
+  details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px;}
+  summary{cursor:pointer;font-size:14px;font-weight:600;}
+  details p,details li{color:var(--sub);font-size:13.5px;}
+  code{background:var(--accent-soft);padding:1px 5px;border-radius:5px;font-size:12.5px;}
+  footer{margin-top:34px;color:var(--sub);font-size:12.5px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Lector Wallpaper Converter</h1>
+    <p>Turn any image into a sleep wallpaper for the Lector / CrossPoint reader. Runs entirely in your
+       browser — nothing is uploaded. Pick your screen and format; the best rendering settings are
+       detected per image.</p>
+  </header>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="ctl">
+        <label>Screen</label>
+        <div class="seg" id="segSize">
+          <button data-w="480" data-h="800" class="on">X4 · 480×800</button>
+          <button data-w="528" data-h="792">X3 · 528×792</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label>Format</label>
+        <div class="seg" id="segFmt">
+          <button data-fmt="pxc" class="on">PXC</button>
+          <button data-fmt="bmp">BMP</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label>Fit</label>
+        <select id="fit">
+          <option value="cover" selected>Cover (fill + crop)</option>
+          <option value="fit">Fit (letterbox)</option>
+          <option value="stretch">Stretch</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label>Rendering</label>
+        <select id="mode">
+          <option value="auto" selected>Auto (detect per image)</option>
+          <option value="dither">Dither (photos)</option>
+          <option value="threshold">Threshold (line art)</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label>Auto-contrast</label>
+        <div class="seg" id="segContrast">
+          <button data-v="1" class="on">On</button>
+          <button data-v="0">Off</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label>Invert <span class="mono" style="text-transform:none">(neg.)</span></label>
+        <div class="seg" id="segInvert">
+          <button data-v="0" class="on">Off</button>
+          <button data-v="1">On</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">Your daily-driver reader is the <strong>X4 · 480×800</strong> build. Files must match
+      the screen within 1&nbsp;px or the device rejects them. On device: set <strong>Sleep Screen = Custom</strong>
+      and <strong>Wallpaper Format = PXC/BMP</strong> to match, then drop the files in <code>/sleep</code>.</div>
+  </div>
+
+  <div class="panel">
+    <div class="drop" id="drop">
+      <strong>Drop images here</strong> or click to choose
+      <small>PNG · JPG · WebP · GIF · BMP — pick as many as you like</small>
+      <input type="file" id="file" accept="image/*" multiple hidden />
+    </div>
+    <div class="bar" id="bar" hidden>
+      <button class="btn" id="dlAll">Download all</button>
+      <button class="btn ghost" id="clear">Clear</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <details>
+    <summary>How it works &amp; the auto settings</summary>
+    <p><strong>PXC</strong> is the device's packed format: a 4-byte little-endian <code>width,height</code> header
+      then 2 bits/pixel (4 gray levels: black · dark · light · white), MSB-first. <strong>BMP</strong> output is a
+      standard 2-bit, 4-gray bitmap the reader also accepts.</p>
+    <ul>
+      <li><strong>Auto rendering</strong> — the image's tonal range is measured. Photographs (many tones) get
+        Floyd–Steinberg dithering for smooth gradients; logos / line art / text (few tones) get crisp
+        thresholding with no dither.</li>
+      <li><strong>Auto-contrast</strong> — stretches the tones to use all four levels, so flat or low-contrast
+        images don't come out muddy. Turn off to keep exact tones.</li>
+      <li><strong>Fit</strong> — <em>Cover</em> fills the screen and crops the overflow (best for most wallpapers);
+        <em>Fit</em> letterboxes the whole image; <em>Stretch</em> distorts to fill.</li>
+      <li><strong>Invert</strong> — only if a wallpaper shows up looking like a photo negative on your panel;
+        leave off for the X4 build.</li>
+    </ul>
+    <p class="mono">All conversion is local (HTML canvas). No server, no upload.</p>
+  </details>
+
+  <footer>Made for the Lector / CrossPoint e-reader · single-file, offline-capable.</footer>
+</div>
+
+<script>
+"use strict";
+// ---------- state ----------
+const S = { w:480, h:800, fmt:"pxc", fit:"cover", mode:"auto", contrast:1, invert:0, files:[] };
+const LEVELS = [0,85,170,255];
+
+// ---------- segmented control wiring ----------
+function seg(id, on){
+  const el = document.getElementById(id);
+  el.addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    [...el.children].forEach(c=>c.classList.toggle("on", c===b));
+    on(b); rerender();
+  });
+}
+seg("segSize", b=>{ S.w=+b.dataset.w; S.h=+b.dataset.h;
+  // sensible invert default per panel, without locking it
+  const inv = document.getElementById("segInvert");
+});
+seg("segFmt", b=> S.fmt=b.dataset.fmt);
+seg("segContrast", b=> S.contrast=+b.dataset.v);
+seg("segInvert", b=> S.invert=+b.dataset.v);
+document.getElementById("fit").addEventListener("change", e=>{S.fit=e.target.value;rerender();});
+document.getElementById("mode").addEventListener("change", e=>{S.mode=e.target.value;rerender();});
+
+// ---------- file intake ----------
+const drop=document.getElementById("drop"), fileInput=document.getElementById("file");
+drop.addEventListener("click", ()=>fileInput.click());
+fileInput.addEventListener("change", e=>addFiles(e.target.files));
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop", e=>{ if(e.dataTransfer?.files) addFiles(e.dataTransfer.files); });
+document.getElementById("clear").addEventListener("click", ()=>{S.files=[];render();});
+
+function addFiles(list){
+  const imgs=[...list].filter(f=>f.type.startsWith("image/"));
+  let pending=imgs.length; if(!pending) return;
+  imgs.forEach(f=>{
+    const img=new Image();
+    img.onload=()=>{ S.files.push({name:f.name, img}); if(--pending===0) render(); };
+    img.onerror=()=>{ if(--pending===0) render(); };
+    img.src=URL.createObjectURL(f);
+  });
+}
+
+// ---------- image processing ----------
+// Draw the source into a w×h grayscale Float array using the fit mode.
+function toGray(img){
+  const {w,h,fit}=S;
+  const c=document.createElement("canvas"); c.width=w; c.height=h;
+  const ctx=c.getContext("2d"); ctx.imageSmoothingQuality="high";
+  ctx.fillStyle="#fff"; ctx.fillRect(0,0,w,h);
+  const iw=img.naturalWidth, ih=img.naturalHeight;
+  let dw=w,dh=h,dx=0,dy=0;
+  if(fit==="cover"){ const s=Math.max(w/iw,h/ih); dw=iw*s; dh=ih*s; dx=(w-dw)/2; dy=(h-dh)/2; }
+  else if(fit==="fit"){ const s=Math.min(w/iw,h/ih); dw=iw*s; dh=ih*s; dx=(w-dw)/2; dy=(h-dh)/2; }
+  ctx.drawImage(img,dx,dy,dw,dh);
+  const d=ctx.getImageData(0,0,w,h).data;
+  const g=new Float32Array(w*h);
+  for(let i=0,p=0;i<g.length;i++,p+=4){
+    // Rec.601 luma
+    g[i]=0.299*d[p]+0.587*d[p+1]+0.114*d[p+2];
+  }
+  return g;
+}
+
+// Percentile-stretch contrast to the full 0..255 range.
+function autoContrast(g){
+  const hist=new Uint32Array(256);
+  for(let i=0;i<g.length;i++) hist[g[i]|0]++;
+  const total=g.length, clip=total*0.005; // ignore darkest/brightest 0.5%
+  let lo=0,hi=255,acc=0;
+  for(let v=0;v<256;v++){ acc+=hist[v]; if(acc>clip){lo=v;break;} }
+  acc=0; for(let v=255;v>=0;v--){ acc+=hist[v]; if(acc>clip){hi=v;break;} }
+  if(hi<=lo) return g;
+  const scale=255/(hi-lo);
+  for(let i=0;i<g.length;i++){ let v=(g[i]-lo)*scale; g[i]=v<0?0:v>255?255:v; }
+  return g;
+}
+
+// Decide dither vs threshold from tonal richness.
+function autoWantsDither(g){
+  const hist=new Uint32Array(256);
+  for(let i=0;i<g.length;i++) hist[g[i]|0]++;
+  const min=g.length*0.001; let tones=0;
+  for(let v=0;v<256;v++) if(hist[v]>min) tones++;
+  // Many populated tones => photographic => dither.
+  return tones>40;
+}
+
+function nearestLevel(v){ return v>=212?3:v>=127?2:v>=42?1:0; }
+
+// Quantise gray -> level indices 0..3 (w*h Uint8).
+function quantize(g, dither){
+  const {w,h}=S; const idx=new Uint8Array(w*h);
+  if(!dither){ for(let i=0;i<g.length;i++) idx[i]=nearestLevel(g[i]); return idx; }
+  const buf=Float32Array.from(g);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i=y*w+x, old=buf[i], q=nearestLevel(old); idx[i]=q;
+      const err=old-LEVELS[q];
+      if(x+1<w) buf[i+1]+=err*7/16;
+      if(y+1<h){ const n=(y+1)*w+x;
+        if(x>0) buf[n-1]+=err*3/16; buf[n]+=err*5/16; if(x+1<w) buf[n+1]+=err*1/16; }
+    }
+  }
+  return idx;
+}
+
+// ---------- encoders ----------
+function encodePxc(idx,invert){
+  const {w,h}=S, stride=(w+3)>>2, out=new Uint8Array(4+stride*h);
+  out[0]=w&255; out[1]=(w>>8)&255; out[2]=h&255; out[3]=(h>>8)&255;
+  for(let y=0;y<h;y++){ const row=4+y*stride;
+    for(let x=0;x<w;x++){ let q=idx[y*w+x]; if(invert)q=3-q;
+      out[row+(x>>2)] |= q<<(6-((x&3)<<1)); } }
+  return out;
+}
+function encodeBmp(idx){
+  const {w,h}=S, rowBytes=(((w*2)+31)>>5)<<2, dataSize=rowBytes*h, off=14+40+16, size=off+dataSize;
+  const b=new Uint8Array(size), dv=new DataView(b.buffer);
+  b[0]=0x42;b[1]=0x4D; dv.setUint32(2,size,true); dv.setUint32(10,off,true);
+  dv.setUint32(14,40,true); dv.setInt32(18,w,true); dv.setInt32(22,h,true);
+  dv.setUint16(26,1,true); dv.setUint16(28,2,true);
+  dv.setUint32(34,dataSize,true); dv.setUint32(46,4,true); dv.setUint32(50,4,true);
+  for(let i=0;i<4;i++){ const p=54+i*4, g=LEVELS[i]; b[p]=g;b[p+1]=g;b[p+2]=g;b[p+3]=0; }
+  for(let y=0;y<h;y++){ const srcY=h-1-y, row=off+y*rowBytes; // BMP is bottom-up
+    for(let x=0;x<w;x++){ const q=idx[srcY*w+x]&3; b[row+(x>>2)] |= q<<(6-((x&3)<<1)); } }
+  return b;
+}
+
+// ---------- convert one file ----------
+function convert(f){
+  let g=toGray(f.img);
+  if(S.contrast) g=autoContrast(g);
+  let dither = S.mode==="dither" ? true : S.mode==="threshold" ? false : autoWantsDither(g);
+  const idx=quantize(g,dither);
+  const bytes = S.fmt==="pxc" ? encodePxc(idx,S.invert) : encodeBmp(idx);
+  const base = f.name.replace(/\.[^.]+$/,"");
+  return { idx, bytes, dither, filename: base+"."+S.fmt };
+}
+
+// ---------- render UI ----------
+const results=document.getElementById("results"), bar=document.getElementById("bar"),
+      countEl=document.getElementById("count");
+let lastConversions=[];
+
+function drawPreview(canvas, idx){
+  const {w,h}=S; canvas.width=w; canvas.height=h;
+  const ctx=canvas.getContext("2d"), im=ctx.createImageData(w,h), d=im.data;
+  for(let i=0,p=0;i<idx.length;i++,p+=4){ const v=LEVELS[idx[i]]; d[p]=d[p+1]=d[p+2]=v; d[p+3]=255; }
+  ctx.putImageData(im,0,0);
+}
+
+function render(){
+  results.innerHTML=""; lastConversions=[];
+  bar.hidden = S.files.length===0;
+  countEl.textContent = S.files.length ? `${S.files.length} image${S.files.length>1?"s":""} · ${S.w}×${S.h} · ${S.fmt.toUpperCase()}` : "";
+  S.files.forEach((f,i)=>{
+    const conv=convert(f); lastConversions.push(conv);
+    const card=document.createElement("div"); card.className="card";
+    const cv=document.createElement("canvas"); card.appendChild(cv); drawPreview(cv,conv.idx);
+    const name=document.createElement("div"); name.className="name mono"; name.textContent=conv.filename;
+    const meta=document.createElement("div"); meta.className="meta";
+    meta.innerHTML=`<span class="tag">${conv.dither?"dither":"threshold"}</span>`+
+      `<span>${S.w}×${S.h}</span><span>${(conv.bytes.length/1024).toFixed(0)} KB</span>`;
+    const a=document.createElement("a"); a.className="dl"; a.textContent="Download";
+    const url=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"}));
+    a.href=url; a.download=conv.filename;
+    card.append(name,meta,a); results.appendChild(card);
+  });
+}
+function rerender(){ if(S.files.length) render(); }
+
+document.getElementById("dlAll").addEventListener("click", ()=>{
+  lastConversions.forEach((c,i)=>setTimeout(()=>{
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([c.bytes],{type:"application/octet-stream"}));
+    a.download=c.filename; a.click();
+  }, i*150));
+});
+
+// theme toggle support (host stamps data-theme); nothing else needed.
+</script>
+</body>
+</html>
