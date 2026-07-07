@@ -100,9 +100,9 @@
       <div class="ctl">
         <label>Fit</label>
         <select id="fit">
-          <option value="cover" selected>Cover (fill + crop)</option>
+          <option value="stretch" selected>Stretch (fill, distort)</option>
+          <option value="cover">Cover (fill + crop)</option>
           <option value="fit">Fit (letterbox)</option>
-          <option value="stretch">Stretch</option>
         </select>
       </div>
       <div class="ctl">
@@ -178,7 +178,7 @@
 <script>
 "use strict";
 // ---------- state ----------
-const S = { w:480, h:800, fmt:"pxc", fit:"cover", mode:"auto", contrast:1, invert:0, files:[] };
+const S = { w:480, h:800, fmt:"pxc", fit:"stretch", mode:"auto", contrast:1, invert:0, files:[] };
 const LEVELS = [0,85,170,255];
 
 // ---------- segmented control wiring ----------
