@@ -51,6 +51,10 @@
   .card .name{font-size:12.5px;margin:9px 0 2px;word-break:break-all;}
   .card .meta{font-size:11.5px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .tag{background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;}
+  .tag.toggle{border:0;font-family:inherit;cursor:pointer;line-height:1.4;}
+  .tag.toggle::after{content:" \21C4";opacity:.65;}
+  .tag.toggle:hover{filter:brightness(1.08);text-decoration:underline;}
+  .tag.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
   .card a.dl{display:block;text-align:center;margin-top:10px;background:var(--accent);color:#fff;
     text-decoration:none;padding:8px;border-radius:8px;font-size:13.5px;font-weight:600;}
   .card a.dl:hover{filter:brightness(1.06);}
@@ -149,7 +153,8 @@
     <ul>
       <li><strong>Auto rendering</strong> — the image's tonal range is measured. Photographs (many tones) get
         Floyd–Steinberg dithering for smooth gradients; logos / line art / text (few tones) get crisp
-        thresholding with no dither.</li>
+        thresholding with no dither. <strong>Click the <code>dither</code> / <code>threshold</code> badge</strong>
+        under any result to flip that one image; changing the Rendering dropdown resets them all.</li>
       <li><strong>Auto-contrast</strong> — stretches the tones to use all four levels, so flat or low-contrast
         images don't come out muddy. Turn off to keep exact tones.</li>
       <li><strong>Fit</strong> — <em>Cover</em> fills the screen and crops the overflow (best for most wallpapers);
@@ -186,7 +191,9 @@ seg("segFmt", b=> S.fmt=b.dataset.fmt);
 seg("segContrast", b=> S.contrast=+b.dataset.v);
 seg("segInvert", b=> S.invert=+b.dataset.v);
 document.getElementById("fit").addEventListener("change", e=>{S.fit=e.target.value;rerender();});
-document.getElementById("mode").addEventListener("change", e=>{S.mode=e.target.value;rerender();});
+document.getElementById("mode").addEventListener("change", e=>{
+  S.mode=e.target.value; S.files.forEach(f=>{delete f.mode;}); rerender();  // global change resets per-image overrides
+});
 
 // ---------- file intake ----------
 const drop=document.getElementById("drop"), fileInput=document.getElementById("file");
@@ -298,7 +305,9 @@ function encodeBmp(idx){
 function convert(f){
   let g=toGray(f.img);
   if(S.contrast) g=autoContrast(g);
-  let dither = S.mode==="dither" ? true : S.mode==="threshold" ? false : autoWantsDither(g);
+  // A per-image override (set by clicking the badge) wins over the global mode.
+  let dither = f.mode ? (f.mode==="dither")
+             : S.mode==="dither" ? true : S.mode==="threshold" ? false : autoWantsDither(g);
   const idx=quantize(g,dither);
   const bytes = S.fmt==="pxc" ? encodePxc(idx,S.invert) : encodeBmp(idx);
   const base = f.name.replace(/\.[^.]+$/,"");
@@ -308,7 +317,6 @@ function convert(f){
 // ---------- render UI ----------
 const results=document.getElementById("results"), bar=document.getElementById("bar"),
       countEl=document.getElementById("count");
-let lastConversions=[];
 
 function drawPreview(canvas, idx){
   const {w,h}=S; canvas.width=w; canvas.height=h;
@@ -317,31 +325,45 @@ function drawPreview(canvas, idx){
   ctx.putImageData(im,0,0);
 }
 
+// Build one result card. The dither/threshold badge is a button: clicking it
+// flips this image's rendering and re-renders just this card, leaving others
+// (and their overrides) untouched. conv is cached on the file for Download all.
+function buildCard(f){
+  const conv=convert(f); f.conv=conv;
+  const card=document.createElement("div"); card.className="card";
+  const cv=document.createElement("canvas"); card.appendChild(cv); drawPreview(cv,conv.idx);
+  const name=document.createElement("div"); name.className="name mono"; name.textContent=conv.filename;
+  const meta=document.createElement("div"); meta.className="meta";
+  const tag=document.createElement("button"); tag.type="button"; tag.className="tag toggle";
+  tag.textContent=conv.dither?"dither":"threshold";
+  tag.title="Click to switch rendering (dither ↔ threshold)";
+  tag.addEventListener("click", ()=>{
+    f.mode = conv.dither ? "threshold" : "dither";   // toggle this image only
+    card.replaceWith(buildCard(f));
+  });
+  const dims=document.createElement("span"); dims.textContent=`${S.w}×${S.h}`;
+  const kb=document.createElement("span"); kb.textContent=`${(conv.bytes.length/1024).toFixed(0)} KB`;
+  meta.append(tag,dims,kb);
+  const a=document.createElement("a"); a.className="dl"; a.textContent="Download";
+  a.href=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"})); a.download=conv.filename;
+  card.append(name,meta,a);
+  return card;
+}
+
 function render(){
-  results.innerHTML=""; lastConversions=[];
+  results.innerHTML="";
   bar.hidden = S.files.length===0;
   countEl.textContent = S.files.length ? `${S.files.length} image${S.files.length>1?"s":""} · ${S.w}×${S.h} · ${S.fmt.toUpperCase()}` : "";
-  S.files.forEach((f,i)=>{
-    const conv=convert(f); lastConversions.push(conv);
-    const card=document.createElement("div"); card.className="card";
-    const cv=document.createElement("canvas"); card.appendChild(cv); drawPreview(cv,conv.idx);
-    const name=document.createElement("div"); name.className="name mono"; name.textContent=conv.filename;
-    const meta=document.createElement("div"); meta.className="meta";
-    meta.innerHTML=`<span class="tag">${conv.dither?"dither":"threshold"}</span>`+
-      `<span>${S.w}×${S.h}</span><span>${(conv.bytes.length/1024).toFixed(0)} KB</span>`;
-    const a=document.createElement("a"); a.className="dl"; a.textContent="Download";
-    const url=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"}));
-    a.href=url; a.download=conv.filename;
-    card.append(name,meta,a); results.appendChild(card);
-  });
+  S.files.forEach(f=>results.appendChild(buildCard(f)));
 }
 function rerender(){ if(S.files.length) render(); }
 
 document.getElementById("dlAll").addEventListener("click", ()=>{
-  lastConversions.forEach((c,i)=>setTimeout(()=>{
+  S.files.forEach((f,i)=>setTimeout(()=>{
+    if(!f.conv) return;
     const a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([c.bytes],{type:"application/octet-stream"}));
-    a.download=c.filename; a.click();
+    a.href=URL.createObjectURL(new Blob([f.conv.bytes],{type:"application/octet-stream"}));
+    a.download=f.conv.filename; a.click();
   }, i*150));
 });
 
