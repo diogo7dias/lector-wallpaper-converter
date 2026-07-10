@@ -1,0 +1,11 @@
+{
+  "note": "Shared wallpapers for the Lector / CrossPoint reader. Each entry points to an X3 (528x792) .pxc master, decoded and previewed in-browser; the gallery re-targets to X4 and to BMP on download. To add one: export an X3 .pxc from the converter, drop it in this folder, and append an entry below.",
+  "wallpapers": [
+    { "file": "aurora.pxc",  "title": "Aurora Drift",  "credit": "placeholder · generative" },
+    { "file": "nebula.pxc",  "title": "Nebula Rings",  "credit": "placeholder · generative" },
+    { "file": "dunes.pxc",   "title": "Dune Ridges",   "credit": "placeholder · generative" },
+    { "file": "orbit.pxc",   "title": "Orbital",       "credit": "placeholder · generative" },
+    { "file": "prism.pxc",   "title": "Prism Fold",    "credit": "placeholder · generative" },
+    { "file": "bloom.pxc",   "title": "Static Bloom",  "credit": "placeholder · generative" }
+  ]
+}

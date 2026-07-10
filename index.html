@@ -70,6 +70,61 @@
   footer{margin-top:34px;color:var(--sub);font-size:12.5px;text-align:center;}
   footer a{color:var(--accent);font-weight:600;text-decoration:none;}
   footer a:hover{text-decoration:underline;}
+
+  /* ---- tabs ---- */
+  .tabs{display:flex;gap:4px;margin-top:20px;border-bottom:1px solid var(--line);}
+  .tab{appearance:none;border:0;background:transparent;color:var(--sub);font-family:inherit;
+    font-size:14.5px;font-weight:600;padding:10px 16px;cursor:pointer;position:relative;
+    border-radius:9px 9px 0 0;transition:color .15s,background .15s;}
+  .tab:hover{color:var(--ink);background:var(--card);}
+  .tab.on{color:var(--accent);}
+  .tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;
+    background:var(--accent);border-radius:2px;}
+
+  /* ---- gallery ---- */
+  .gintro{margin-top:20px;}
+  .gintro h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em;}
+  .gintro p{margin:0;color:var(--sub);font-size:14px;max-width:64ch;}
+  .gstate{margin-top:22px;color:var(--sub);font-size:14px;text-align:center;padding:30px 10px;
+    border:1px dashed var(--line);border-radius:12px;background:var(--card);}
+  .ggrid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;}
+  .gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;
+    transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s,border-color .22s;
+    opacity:0;transform:translateY(14px) scale(.98);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes rise{to{opacity:1;transform:none;}}
+  .gcard:hover{transform:translateY(-4px);border-color:var(--accent);
+    box-shadow:0 2px 6px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.14);}
+  .gframe{position:relative;border-radius:9px;overflow:hidden;border:1px solid var(--line);
+    background:#fff;line-height:0;}
+  .gframe canvas{width:100%;height:auto;image-rendering:pixelated;display:block;
+    transition:transform .5s cubic-bezier(.2,.7,.3,1);}
+  .gcard:hover .gframe canvas{transform:scale(1.05);}
+  /* sweeping e-ink sheen on hover */
+  .gframe::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,transparent 66%);
+    transform:translateX(-120%);transition:transform .7s ease;}
+  .gcard:hover .gframe::after{transform:translateX(120%);}
+  .gtitle{font-size:14px;font-weight:600;margin:11px 0 1px;letter-spacing:-.01em;}
+  .gcredit{font-size:11.5px;color:var(--sub);margin-bottom:10px;}
+  .gcredit .mono{font-size:11px;}
+  .gdl-main{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;
+    padding:9px;border-radius:9px;font-size:13.5px;font-weight:600;transition:filter .15s;}
+  .gdl-main:hover{filter:brightness(1.07);}
+  .gdl-alt{display:flex;gap:6px;margin-top:8px;}
+  .gdl-alt button{flex:1;appearance:none;border:1px solid var(--line);background:transparent;
+    color:var(--sub);font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 4px;
+    border-radius:8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
+  .gdl-alt button:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
+  .gsize{position:absolute;top:8px;left:8px;background:rgba(20,19,17,.72);color:#f4f1ea;
+    font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;backdrop-filter:blur(2px);}
+  @media (prefers-reduced-motion:reduce){
+    .gcard{animation:none;opacity:1;transform:none;}
+    .gcard:hover{transform:none;}
+    .gframe canvas,.gcard:hover .gframe canvas{transform:none;}
+    .gframe::after{display:none;}
+  }
 </style>
 </head>
 <body>
@@ -81,6 +136,12 @@
        detected per image.</p>
   </header>
 
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Views">
+    <button class="tab on" data-view="convert" role="tab" aria-selected="true">Converter</button>
+    <button class="tab" data-view="gallery" role="tab" aria-selected="false">Gallery</button>
+  </nav>
+
+  <section id="view-convert" role="tabpanel">
   <div class="panel">
     <div class="controls">
       <div class="ctl">
@@ -171,6 +232,19 @@
     </ul>
     <p class="mono">All conversion is local (HTML canvas). No server, no upload.</p>
   </details>
+  </section>
+
+  <section id="view-gallery" role="tabpanel" hidden>
+    <div class="gintro">
+      <h2>Shared wallpapers</h2>
+      <p>A hand-picked set, ready for your reader. Each is stored as an <span class="mono">X3</span>
+         master and re-targeted in your browser — grab it for <span class="mono">X3</span> as-is, or
+         download an <span class="mono">X4</span> / <span class="mono">BMP</span> version. Nothing is
+         uploaded; conversion happens locally.</p>
+    </div>
+    <div class="gstate" id="gstate" hidden></div>
+    <div class="ggrid" id="ggrid"></div>
+  </section>
 
   <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a> / CrossPoint e-reader · single-file, offline-capable.</footer>
 </div>
@@ -429,6 +503,101 @@ document.getElementById("dlAll").addEventListener("click", ()=>{
     a.download=f.conv.filename; a.click();
   }, i*150));
 });
+
+// ---------- tabs ----------
+const tabs=document.getElementById("tabs");
+const views={convert:document.getElementById("view-convert"), gallery:document.getElementById("view-gallery")};
+let galleryLoaded=false;
+tabs.addEventListener("click", e=>{
+  const b=e.target.closest(".tab"); if(!b) return;
+  const v=b.dataset.view;
+  [...tabs.children].forEach(t=>{const on=t===b; t.classList.toggle("on",on); t.setAttribute("aria-selected",on);});
+  views.convert.hidden = v!=="convert";
+  views.gallery.hidden = v!=="gallery";
+  if(v==="gallery" && !galleryLoaded){ galleryLoaded=true; loadGallery(); }
+});
+
+// ---------- gallery ----------
+// Re-encode a decoded wallpaper to a target screen+format, reusing the
+// converter pipeline. Cover-fits (a wallpaper already fills its master), skips
+// the contrast pass (tones are already placed) and lets auto pick dithering —
+// so a cross-screen resample stays smooth while a same-size re-encode stays
+// exact (auto sees 4 tones → threshold → identity). Returns packed bytes.
+function convertImageTo(img, w, h, fmt){
+  const saved={w:S.w,h:S.h,fmt:S.fmt,fit:S.fit,mode:S.mode,contrast:S.contrast,invert:S.invert};
+  S.w=w; S.h=h; S.fmt=fmt; S.fit="cover"; S.contrast=0; S.invert=0;
+  try{
+    const g=toGray(img);
+    const idx=quantize(g,autoWantsDither(g));
+    return fmt==="pxc" ? encodePxc(idx,0) : encodeBmp(idx);
+  } finally { Object.assign(S,saved); }
+}
+
+function triggerDownload(bytes, filename){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
+  a.download=filename; a.click();
+}
+
+function galleryCard(entry, img, w, h){
+  const base=entry.file.replace(/\.[^.]+$/,"");
+  const card=document.createElement("div"); card.className="gcard";
+  const frame=document.createElement("div"); frame.className="gframe";
+  const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+  cv.getContext("2d").drawImage(img,0,0);        // decoded X3 master, straight to canvas
+  const sz=document.createElement("div"); sz.className="gsize"; sz.textContent=`${w}×${h}`;
+  frame.append(cv,sz);
+  const title=document.createElement("div"); title.className="gtitle"; title.textContent=entry.title||base;
+  card.append(frame,title);
+  if(entry.credit){ const cr=document.createElement("div"); cr.className="gcredit"; cr.textContent=entry.credit; card.append(cr); }
+  // Original X3 .pxc is served as-is (byte-for-byte the stored master).
+  const main=document.createElement("a"); main.className="gdl-main";
+  main.href="gallery/"+entry.file; main.download=entry.file;
+  main.textContent="Download · X3 PXC";
+  // Everything else is re-encoded on click from the decoded master.
+  const alt=document.createElement("div"); alt.className="gdl-alt";
+  [["X4 PXC",480,800,"pxc"],["X3 BMP",528,792,"bmp"],["X4 BMP",480,800,"bmp"]].forEach(([label,tw,th,fmt])=>{
+    const btn=document.createElement("button"); btn.type="button"; btn.textContent=label;
+    btn.addEventListener("click", ()=>{
+      triggerDownload(convertImageTo(img,tw,th,fmt), `${base}-${tw===480?"x4":"x3"}.${fmt}`);
+    });
+    alt.appendChild(btn);
+  });
+  card.append(main,alt);
+  return card;
+}
+
+async function loadGallery(){
+  const grid=document.getElementById("ggrid"), state=document.getElementById("gstate");
+  const showState=msg=>{ state.hidden=false; state.textContent=msg; };
+  let manifest;
+  try{
+    const res=await fetch("gallery/manifest.json",{cache:"no-cache"});
+    if(!res.ok) throw new Error(res.status);
+    manifest=await res.json();
+  }catch(_){
+    showState("The gallery needs its files served over http — open the live site, or run a local server. The converter tab works offline regardless.");
+    return;
+  }
+  const list=(manifest && manifest.wallpapers) || [];
+  if(!list.length){ showState("No wallpapers shared yet."); return; }
+  state.hidden=true;
+  let shown=0;
+  for(const entry of list){
+    try{
+      const res=await fetch("gallery/"+entry.file);
+      if(!res.ok) throw new Error(res.status);
+      const parsed=parsePxc(await res.arrayBuffer());
+      if(!parsed) continue;
+      const img=new Image();
+      await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=parsed.dataURL; });
+      const card=galleryCard(entry,img,parsed.w,parsed.h);
+      card.style.animationDelay=(shown*70)+"ms";
+      grid.appendChild(card); shown++;
+    }catch(_){ /* skip an unreadable entry, keep the rest */ }
+  }
+  if(!shown) showState("Couldn't load the shared wallpapers.");
+}
 
 // theme toggle support (host stamps data-theme); nothing else needed.
 </script>
