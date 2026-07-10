@@ -34,4 +34,25 @@ screen selector matters.
 4-entry grayscale palette. Both match the device decoder (`PxcSleepRenderer.cpp` / `Bitmap.cpp`)
 byte-for-byte.
 
+## Gallery
+
+The **Gallery** tab shares a set of ready-made wallpapers. Each is stored once as an `X3` (528×792)
+`.pxc` master in [`gallery/`](gallery/) — about 105 KB, since `.pxc` is uncompressed 2-bit, so every
+X3 file is exactly 104,548 bytes regardless of the picture. The page decodes each master in the
+browser to draw the preview, offers the X3 `.pxc` as-is, and re-targets to `X4` or to `.bmp` locally
+on download (no server, nothing uploaded).
+
+At ~105 KB apiece a few hundred wallpapers still sit comfortably inside GitHub's limits, so the ceiling
+is curation, not storage.
+
+**Add your own:** export an `X3 · PXC` from the converter, drop the file into `gallery/`, and append an
+entry to [`gallery/manifest.json`](gallery/manifest.json):
+
+```json
+{ "file": "my-wallpaper.pxc", "title": "My Wallpaper", "credit": "you" }
+```
+
+The gallery loads over http (the live site or a local server); the Converter tab still works fully
+offline.
+
 Offline-capable: save the page and it still works with no network.
