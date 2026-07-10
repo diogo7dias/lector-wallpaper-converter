@@ -4,136 +4,193 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Lector Wallpaper Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --paper:#f4f1ea; --ink:#1b1a17; --sub:#6f6a5f; --line:#d9d3c6;
-    --card:#fbf9f4; --accent:#f2cf5e; --accent-soft:#f7edc8; --accent-strong:#96780f; --on-accent:#33290a; --good:#2f6f4f; --bad:#a23a2e;
-    --shadow:0 1px 2px rgba(0,0,0,.06),0 6px 20px rgba(0,0,0,.05);
+    --paper:#f5f1e6; --panel:#fbf8ef; --ink:#0a0a0a; --text:#1c1b18;
+    --sub:#5e5851; --soft:#d8d1bd; --dash:#b8afa0; --code:#ebe5d4;
+    --red:#e1422f; --yellow:#ffcb1f; --yellow-soft:#fff1a8;
+    --sans:'Archivo','Helvetica Neue',system-ui,sans-serif;
+    --serif:'Newsreader',Georgia,'Times New Roman',serif;
+    --mono:'JetBrains Mono',ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --black:'Archivo Black','Archivo',sans-serif;
   }
-  @media (prefers-color-scheme:dark){
-    :root{--paper:#141311;--ink:#ece7dc;--sub:#9a9384;--line:#2c2a25;
-      --card:#1c1a16;--accent:#ecc857;--accent-soft:#39331b;--accent-strong:#f0d478;--on-accent:#2a220a;--good:#7fc79c;--bad:#e0796b;
-      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35);}
-  }
-  :root[data-theme="dark"]{--paper:#141311;--ink:#ece7dc;--sub:#9a9384;--line:#2c2a25;
-    --card:#1c1a16;--accent:#ecc857;--accent-soft:#39331b;--accent-strong:#f0d478;--on-accent:#2a220a;--good:#7fc79c;--bad:#e0796b;}
-  :root[data-theme="light"]{--paper:#f4f1ea;--ink:#1b1a17;--sub:#6f6a5f;--line:#d9d3c6;
-    --card:#fbf9f4;--accent:#f2cf5e;--accent-soft:#f7edc8;--accent-strong:#96780f;--on-accent:#33290a;--good:#2f6f4f;--bad:#a23a2e;}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);
-    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    line-height:1.5;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:940px;margin:0 auto;padding:28px 20px 80px;}
-  header h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em;}
-  header p{margin:0;color:var(--sub);font-size:14.5px;max-width:60ch;}
-  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:18px;margin-top:20px;box-shadow:var(--shadow);}
-  .drop{border:2px dashed var(--line);border-radius:14px;padding:34px 20px;text-align:center;
-    cursor:pointer;transition:border-color .15s,background .15s;background:var(--card);}
-  .drop:hover,.drop.over{border-color:var(--accent-strong);background:var(--accent-soft);}
-  .drop strong{color:var(--accent-strong);}
-  .drop small{color:var(--sub);display:block;margin-top:6px;font-size:13px;}
-  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;}
-  .ctl label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
-    color:var(--sub);margin-bottom:6px;}
-  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;}
-  .seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:8px 6px;
-    font-size:13.5px;cursor:pointer;font-family:inherit;}
-  .seg button.on{background:var(--accent);color:var(--on-accent);}
-  select{width:100%;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);
-    color:var(--ink);font-size:13.5px;font-family:inherit;}
-  .hint{color:var(--sub);font-size:12.5px;margin-top:12px;}
-  .results{margin-top:8px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow);}
-  .card canvas{width:100%;height:auto;image-rendering:pixelated;border-radius:6px;
-    background:#fff;border:1px solid var(--line);display:block;}
-  .card .name{font-size:12.5px;margin:9px 0 2px;word-break:break-all;}
-  .card .meta{font-size:11.5px;color:var(--sub);display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-  .tag{background:var(--accent-soft);color:var(--accent-strong);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600;}
-  .tag.toggle{border:0;font-family:inherit;cursor:pointer;line-height:1.4;}
-  .tag.toggle::after{content:" \21C4";opacity:.65;}
-  .tag.toggle:hover{filter:brightness(1.08);text-decoration:underline;}
-  .tag.toggle:focus-visible{outline:2px solid var(--accent-strong);outline-offset:1px;}
-  .card a.dl{display:block;text-align:center;margin-top:10px;background:var(--accent);color:var(--on-accent);
-    text-decoration:none;padding:8px;border-radius:8px;font-size:13.5px;font-weight:600;}
-  .card a.dl:hover{filter:brightness(1.06);}
-  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;}
-  .btn{background:var(--ink);color:var(--paper);border:0;border-radius:9px;padding:9px 16px;
-    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
-  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
-  .count{color:var(--sub);font-size:13px;}
-  details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px;}
-  summary{cursor:pointer;font-size:14px;font-weight:600;}
-  details p,details li{color:var(--sub);font-size:13.5px;}
-  code{background:var(--accent-soft);padding:1px 5px;border-radius:5px;font-size:12.5px;}
-  footer{margin-top:34px;color:var(--sub);font-size:12.5px;text-align:center;}
-  footer a{color:var(--accent-strong);font-weight:600;text-decoration:none;}
-  footer a:hover{text-decoration:underline;}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--text);font-family:var(--sans);line-height:1.45;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:var(--yellow);color:var(--ink);}
+  a{color:var(--ink);}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 24px 90px;}
+  .mono{font-family:var(--mono);}
+  code{font-family:var(--mono);background:var(--code);border:1px solid var(--ink);border-radius:2px;padding:1px 5px;}
+
+  /* ---- header ---- */
+  .topline{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:500;
+    padding-bottom:8px;}
+  .rule-thin{border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);height:3px;}
+  .rule{border-top:3px solid var(--ink);}
+  .masthead{display:flex;align-items:center;gap:20px;padding:18px 0 14px;}
+  .logo{flex:none;width:60px;height:60px;border:3px solid var(--ink);background:var(--panel);
+    box-shadow:4px 4px 0 0 var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .logo svg{width:100%;height:100%;display:block;}
+  .masthead h1{font-family:var(--serif);font-weight:600;font-size:40px;line-height:1;
+    letter-spacing:-.02em;color:var(--ink);margin:0;}
+  .masthead p{margin:8px 0 0;color:var(--sub);font-size:14.5px;max-width:64ch;}
 
   /* ---- tabs ---- */
-  .tabs{display:flex;gap:4px;margin-top:20px;border-bottom:1px solid var(--line);}
-  .tab{appearance:none;border:0;background:transparent;color:var(--sub);font-family:inherit;
-    font-size:14.5px;font-weight:600;padding:10px 16px;cursor:pointer;position:relative;
-    border-radius:9px 9px 0 0;transition:color .15s,background .15s;}
-  .tab:hover{color:var(--ink);background:var(--card);}
-  .tab.on{color:var(--accent-strong);}
-  .tab.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;
-    background:var(--accent-strong);border-radius:2px;}
+  .tabs{display:inline-flex;margin-top:22px;border:3px solid var(--ink);border-radius:6px;
+    overflow:hidden;background:var(--paper);box-shadow:4px 4px 0 0 var(--ink);}
+  .tab{appearance:none;border:0;background:transparent;color:var(--ink);font-family:var(--sans);
+    font-size:15px;font-weight:800;letter-spacing:.01em;padding:11px 26px;cursor:pointer;}
+  .tab:not(:last-child){border-right:3px solid var(--ink);}
+  .tab.on{background:var(--ink);color:var(--paper);}
 
-  /* ---- gallery ---- */
-  .gintro{margin-top:20px;}
-  .gintro h2{font-size:19px;margin:0 0 4px;letter-spacing:-.01em;}
-  .gintro p{margin:0;color:var(--sub);font-size:14px;max-width:64ch;}
-  .gstate{margin-top:22px;color:var(--sub);font-size:14px;text-align:center;padding:30px 10px;
-    border:1px dashed var(--line);border-radius:12px;background:var(--card);}
-  .ggrid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;}
-  .gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;
-    box-shadow:var(--shadow);position:relative;overflow:hidden;
-    transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s,border-color .22s;
-    opacity:0;transform:translateY(14px) scale(.98);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
-  @keyframes rise{to{opacity:1;transform:none;}}
-  .gcard:hover{transform:translateY(-4px);border-color:var(--accent-strong);
-    box-shadow:0 2px 6px rgba(0,0,0,.08),0 16px 40px rgba(0,0,0,.14);}
-  .gframe{position:relative;border-radius:9px;overflow:hidden;border:1px solid var(--line);
-    background:#fff;line-height:0;}
+  /* ---- panels & controls ---- */
+  .panel{background:var(--panel);border:3px solid var(--ink);box-shadow:6px 6px 0 0 var(--ink);
+    border-radius:6px;padding:20px;margin-top:24px;}
+  .panel.drop-panel{margin-top:26px;}
+  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;}
+  .ctl label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--sub);margin-bottom:8px;font-weight:500;}
+  .ctl label .paren{text-transform:none;font-family:var(--mono);}
+  .seg{display:flex;border:3px solid var(--ink);border-radius:5px;overflow:hidden;background:var(--paper);}
+  .seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:9px 4px;
+    font-family:var(--sans);font-weight:700;font-size:12.5px;cursor:pointer;}
+  .seg button:not(:last-child){border-right:3px solid var(--ink);}
+  .seg button.on{background:var(--ink);color:var(--paper);}
+  select{width:100%;padding:9px 8px;border:3px solid var(--ink);border-radius:5px;background:var(--paper);
+    color:var(--ink);font-size:13px;font-family:var(--sans);font-weight:600;cursor:pointer;}
+  .note{margin-top:16px;padding-top:14px;border-top:1px solid var(--soft);color:var(--sub);
+    font-size:12.5px;line-height:1.5;}
+  .note strong{color:var(--ink);}
+
+  /* ---- drop zone ---- */
+  .drop{border:3px dashed var(--dash);border-radius:6px;padding:40px 20px;text-align:center;
+    cursor:pointer;background:transparent;
+    transition:border-color .16s cubic-bezier(.32,.72,.12,1),background .16s;}
+  .drop:hover,.drop.over{border-color:var(--red);background:var(--yellow-soft);}
+  .drop .big{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);letter-spacing:-.01em;}
+  .drop .big span{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--sub);}
+  .drop .sub{color:var(--sub);font-size:13px;margin-top:8px;}
+
+  /* ---- results bar ---- */
+  .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px;}
+  .bar[hidden]{display:none;}
+  .btn{border:3px solid var(--ink);border-radius:6px;padding:10px 18px;font-size:14px;font-weight:800;
+    cursor:pointer;font-family:var(--sans);box-shadow:4px 4px 0 0 var(--ink);}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--ink);}
+  .count{color:var(--sub);font-size:13px;font-family:var(--mono);letter-spacing:.04em;}
+  .results{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;}
+
+  /* ---- result card ---- */
+  .card{background:var(--paper);border:3px solid var(--ink);border-radius:6px;padding:12px;
+    box-shadow:4px 4px 0 0 var(--ink);}
+  .card canvas{width:100%;height:auto;image-rendering:pixelated;border:2px solid var(--ink);
+    background:#fff;display:block;border-radius:2px;}
+  .card .name{font-family:var(--mono);font-size:12px;margin:10px 0 6px;word-break:break-all;color:#1c1b18;}
+  .card .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:var(--mono);
+    font-size:11px;color:var(--sub);}
+  .pill{border-radius:999px;padding:1px 9px;font-size:10.5px;font-weight:700;}
+  .pill-toggle{background:var(--yellow-soft);color:var(--ink);border:2px solid var(--ink);
+    font-family:var(--sans);cursor:pointer;}
+  .pill-src{background:var(--code);border:2px solid var(--ink);color:var(--sub);}
+  .card a.dl{display:block;text-align:center;margin-top:12px;background:var(--red);color:#fff;
+    text-decoration:none;padding:9px;border:3px solid var(--ink);border-radius:6px;font-size:13px;
+    font-weight:800;font-family:var(--sans);box-shadow:4px 4px 0 0 var(--ink);}
+
+  /* ---- how it works ---- */
+  details{margin-top:24px;border:3px solid var(--ink);border-radius:6px;background:var(--panel);
+    box-shadow:4px 4px 0 0 var(--ink);padding:16px 18px;}
+  summary{cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:800;color:var(--ink);}
+  details p{color:var(--sub);font-size:13.5px;margin:12px 0 0;}
+  details ul{color:var(--sub);font-size:13.5px;padding-left:20px;margin:12px 0 0;line-height:1.55;}
+  details strong{color:var(--ink);}
+  details .foot{font-family:var(--mono);color:var(--sub);font-size:12px;margin:12px 0 0;letter-spacing:.04em;}
+
+  /* ---- gallery hero ---- */
+  .hero{position:relative;background:var(--ink);color:var(--paper);border-radius:6px;
+    padding:26px 24px;margin-top:24px;overflow:hidden;}
+  .hero .tex{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22240%22 height%3D%22240%22 viewBox%3D%220 0 240 240%22%3E %3Cfilter id%3D%22g%22%3E %3CfeTurbulence type%3D%22fractalNoise%22 baseFrequency%3D%220.92%22 numOctaves%3D%222%22 seed%3D%227%22 stitchTiles%3D%22stitch%22%3E%3C%2FfeTurbulence%3E %3CfeColorMatrix values%3D%220 0 0 0 0%26%23xA%3B                           0 0 0 0 0%26%23xA%3B                           0 0 0 0 0%26%23xA%3B                           0 0 0 0.55 0%22%3E%3C%2FfeColorMatrix%3E %3C%2Ffilter%3E %3Crect width%3D%22100%25%22 height%3D%22100%25%22 filter%3D%22url(%23g)%22%3E%3C%2Frect%3E %3C%2Fsvg%3E");background-size:240px 240px;
+    opacity:.16;mix-blend-mode:screen;pointer-events:none;}
+  .hero .in{position:relative;}
+  .hero .label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--yellow);font-weight:500;margin-bottom:10px;}
+  .hero h2{font-family:var(--black);font-weight:900;font-size:44px;line-height:.94;letter-spacing:-.02em;
+    color:var(--paper);margin:0;}
+  .hero p{color:var(--dash);font-size:14.5px;max-width:60ch;margin:14px 0 0;}
+  .hero .k{font-family:var(--mono);color:var(--paper);}
+
+  /* ---- gallery grid ---- */
+  .gstate{margin-top:22px;color:var(--sub);font-size:14px;text-align:center;padding:34px 12px;
+    border:3px dashed var(--dash);border-radius:6px;background:var(--panel);}
+  .gstate[hidden]{display:none;}
+  .ggrid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px;}
+
+  /* ---- gallery card ---- */
+  .gcard{background:var(--panel);border:3px solid var(--ink);border-radius:6px;padding:12px;
+    box-shadow:4px 4px 0 0 var(--ink);opacity:0;animation:lwc-rise .5s cubic-bezier(.2,.7,.3,1) forwards;
+    transition:transform .2s cubic-bezier(.2,.9,.3,1.15),box-shadow .2s,border-color .2s;}
+  .gcard:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 0 var(--ink);border-color:var(--red);}
+  .gframe{position:relative;border:3px solid var(--ink);border-radius:4px;overflow:hidden;background:#fff;line-height:0;}
   .gframe canvas{width:100%;height:auto;image-rendering:pixelated;display:block;
     transition:transform .5s cubic-bezier(.2,.7,.3,1);}
   .gcard:hover .gframe canvas{transform:scale(1.05);}
-  /* sweeping e-ink sheen on hover */
-  .gframe::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,transparent 66%);
-    transform:translateX(-120%);transition:transform .7s ease;}
-  .gcard:hover .gframe::after{transform:translateX(120%);}
-  .gtitle{font-size:14px;font-weight:600;margin:11px 0 1px;letter-spacing:-.01em;}
-  .gcredit{font-size:11.5px;color:var(--sub);margin-bottom:10px;}
-  .gcredit .mono{font-size:11px;}
-  .gdl-main{display:block;text-align:center;background:var(--accent);color:var(--on-accent);text-decoration:none;
-    padding:9px;border-radius:9px;font-size:13.5px;font-weight:600;transition:filter .15s;}
-  .gdl-main:hover{filter:brightness(1.07);}
-  .gdl-alt{display:flex;gap:6px;margin-top:8px;}
-  .gdl-alt button{flex:1;appearance:none;border:1px solid var(--line);background:transparent;
-    color:var(--sub);font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 4px;
-    border-radius:8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
-  .gdl-alt button:hover{color:var(--accent-strong);border-color:var(--accent-strong);background:var(--accent-soft);}
-  .gsize{position:absolute;top:8px;left:8px;background:rgba(20,19,17,.72);color:#f4f1ea;
-    font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;
-    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;backdrop-filter:blur(2px);}
+  .gsize{position:absolute;top:10px;left:10px;background:var(--yellow);color:var(--ink);
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.5;
+    padding:5px 11px;border:2px solid var(--ink);border-radius:999px;}
+  .gtitle{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:-.01em;color:var(--ink);margin:12px 0 1px;}
+  .gcredit{font-family:var(--mono);font-size:11px;color:var(--sub);margin-bottom:12px;}
+  .gdl-main{display:block;width:100%;text-align:center;background:var(--red);color:#fff;text-decoration:none;
+    border:3px solid var(--ink);border-radius:6px;padding:9px;font-size:13px;font-weight:800;
+    font-family:var(--sans);box-shadow:4px 4px 0 0 var(--ink);cursor:pointer;letter-spacing:.02em;}
+  .gdl-alt{display:flex;gap:7px;margin-top:9px;}
+  .gdl-alt button{flex:1;border:2px solid var(--ink);background:var(--paper);color:#1c1b18;
+    font-family:var(--mono);font-size:10.5px;font-weight:700;padding:6px 2px;border-radius:5px;
+    cursor:pointer;transition:background .14s,color .14s;}
+  .gdl-alt button:hover{background:var(--yellow);}
+
+  /* ---- footer ---- */
+  footer{margin-top:40px;padding-top:18px;border-top:3px solid var(--ink);color:var(--sub);
+    font-size:12.5px;text-align:center;font-family:var(--mono);letter-spacing:.04em;}
+  footer a{color:var(--ink);font-weight:700;}
+
+  /* ---- motion ---- */
+  @keyframes lwc-rise{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+  @keyframes lwc-eink{0%{filter:none}10%{filter:invert(1)}22%{filter:invert(1) brightness(.15)}
+    34%{filter:brightness(0)}46%{filter:invert(1)}58%{filter:brightness(0)}
+    70%{filter:invert(1) contrast(1.4)}82%{filter:none}100%{filter:none}}
   @media (prefers-reduced-motion:reduce){
-    .gcard{animation:none;opacity:1;transform:none;}
+    *{animation-duration:.001ms!important;}
+    .gcard{opacity:1;}
     .gcard:hover{transform:none;}
     .gframe canvas,.gcard:hover .gframe canvas{transform:none;}
-    .gframe::after{display:none;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
+
   <header>
-    <h1>Lector Wallpaper Converter</h1>
-    <p>Turn any image into a sleep wallpaper for the Lector / CrossPoint reader. Runs entirely in your
-       browser — nothing is uploaded. Pick your screen and format; the best rendering settings are
-       detected per image.</p>
+    <div class="topline">
+      <span>Local only — nothing uploaded</span>
+      <span>Est. 2026 · CrossPoint</span>
+    </div>
+    <div class="rule-thin"></div>
+    <div class="masthead">
+      <div class="logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lector"><g transform="translate(50 50) rotate(-38) scale(1.18) translate(-50 -50)" fill="#0a0a0a"><path d="M35 42 L35 20 L45 20 L45 32 L55 32 L55 20 L65 20 L65 42 Z"/><rect x="44" y="38" width="12" height="30" rx="6"/><circle cx="50" cy="72" r="13"/><circle cx="50" cy="72" r="5.5" fill="#fbf8ef"/></g></svg></div>
+      <div style="flex:1;min-width:0">
+        <h1>Lector Wallpaper Converter</h1>
+        <p>Turn any image into a sleep wallpaper for the Lector / CrossPoint reader. It runs entirely in
+           your browser — nothing is uploaded. Pick a screen and format; the best rendering is detected
+           per image.</p>
+      </div>
+    </div>
+    <div class="rule"></div>
   </header>
 
   <nav class="tabs" id="tabs" role="tablist" aria-label="Views">
@@ -141,119 +198,136 @@
     <button class="tab" data-view="gallery" role="tab" aria-selected="false">Gallery</button>
   </nav>
 
+  <!-- ======================= CONVERTER ======================= -->
   <section id="view-convert" role="tabpanel">
-  <div class="panel">
-    <div class="controls">
-      <div class="ctl">
-        <label>Screen</label>
-        <div class="seg" id="segSize">
-          <button data-w="480" data-h="800" class="on">X4 · 480×800</button>
-          <button data-w="528" data-h="792">X3 · 528×792</button>
+    <div class="panel">
+      <div class="controls">
+        <div class="ctl">
+          <label>Screen</label>
+          <div class="seg" id="segSize">
+            <button data-w="480" data-h="800" class="on">X4 · 480×800</button>
+            <button data-w="528" data-h="792">X3 · 528×792</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Format</label>
+          <div class="seg" id="segFmt">
+            <button data-fmt="pxc" class="on">PXC</button>
+            <button data-fmt="bmp">BMP</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Fit</label>
+          <select id="fit">
+            <option value="stretch" selected>Stretch (fill, distort)</option>
+            <option value="cover">Cover (fill + crop)</option>
+            <option value="fit">Fit (letterbox)</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label>Rendering</label>
+          <select id="mode">
+            <option value="auto" selected>Auto (detect per image)</option>
+            <option value="dither">Dither (photos)</option>
+            <option value="threshold">Threshold (line art)</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label>Auto-contrast</label>
+          <div class="seg" id="segContrast">
+            <button data-v="1" class="on">On</button>
+            <button data-v="0">Off</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>Invert <span class="paren">(neg.)</span></label>
+          <div class="seg" id="segInvert">
+            <button data-v="0" class="on">Off</button>
+            <button data-v="1">On</button>
+          </div>
         </div>
       </div>
-      <div class="ctl">
-        <label>Format</label>
-        <div class="seg" id="segFmt">
-          <button data-fmt="pxc" class="on">PXC</button>
-          <button data-fmt="bmp">BMP</button>
-        </div>
-      </div>
-      <div class="ctl">
-        <label>Fit</label>
-        <select id="fit">
-          <option value="stretch" selected>Stretch (fill, distort)</option>
-          <option value="cover">Cover (fill + crop)</option>
-          <option value="fit">Fit (letterbox)</option>
-        </select>
-      </div>
-      <div class="ctl">
-        <label>Rendering</label>
-        <select id="mode">
-          <option value="auto" selected>Auto (detect per image)</option>
-          <option value="dither">Dither (photos)</option>
-          <option value="threshold">Threshold (line art)</option>
-        </select>
-      </div>
-      <div class="ctl">
-        <label>Auto-contrast</label>
-        <div class="seg" id="segContrast">
-          <button data-v="1" class="on">On</button>
-          <button data-v="0">Off</button>
-        </div>
-      </div>
-      <div class="ctl">
-        <label>Invert <span class="mono" style="text-transform:none">(neg.)</span></label>
-        <div class="seg" id="segInvert">
-          <button data-v="0" class="on">Off</button>
-          <button data-v="1">On</button>
-        </div>
-      </div>
+      <div class="note">Files must match your screen within 1&nbsp;px or the device rejects them, so pick the
+        size that matches your reader. On device: set <strong>Sleep Screen = Custom</strong> and
+        <strong>Wallpaper Format</strong> to match, then drop the files in <code>/sleep</code>.</div>
     </div>
-    <div class="hint">Files must match your screen within 1&nbsp;px or the device rejects them, so pick the
-      size that matches your reader. On device: set <strong>Sleep Screen = Custom</strong> and
-      <strong>Wallpaper Format = PXC/BMP</strong> to match, then drop the files in <code>/sleep</code>.</div>
-  </div>
 
-  <div class="panel">
-    <div class="drop" id="drop">
-      <strong>Drop images here</strong> or click to choose
-      <small>PNG · JPG · WebP · GIF · BMP · PXC — pick as many as you like.
-        Drop an existing <code>.pxc</code> to re-target it to the other screen.</small>
-      <input type="file" id="file" accept="image/*,.pxc" multiple hidden />
+    <div class="panel drop-panel">
+      <div class="drop" id="drop">
+        <div class="big">Drop images here <span>or click to choose</span></div>
+        <div class="sub">PNG · JPG · WebP · GIF · BMP · PXC — pick as many as you like. Drop an existing
+          <code>.pxc</code> to re-target it to the other screen.</div>
+        <input type="file" id="file" accept="image/*,.pxc" multiple hidden />
+      </div>
+      <div class="bar" id="bar" hidden>
+        <button class="btn btn-red" id="dlAll">Download all</button>
+        <button class="btn btn-ghost" id="clear">Clear</button>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="results" id="results"></div>
     </div>
-    <div class="bar" id="bar" hidden>
-      <button class="btn" id="dlAll">Download all</button>
-      <button class="btn ghost" id="clear">Clear</button>
-      <span class="count" id="count"></span>
-    </div>
-    <div class="results" id="results"></div>
-  </div>
 
-  <details>
-    <summary>How it works &amp; the auto settings</summary>
-    <p><strong>PXC</strong> is the device's packed format: a 4-byte little-endian <code>width,height</code> header
-      then 2 bits/pixel (4 gray levels: black · dark · light · white), MSB-first. <strong>BMP</strong> output is a
-      standard 2-bit, 4-gray bitmap the reader also accepts.</p>
-    <ul>
-      <li><strong>Auto rendering</strong> — the image's tonal range is measured. Photographs (many tones) get
-        Floyd–Steinberg dithering for smooth gradients; logos / line art / text (few tones) get crisp
-        thresholding with no dither. <strong>Click the <code>dither</code> / <code>threshold</code> badge</strong>
-        under any result to flip that one image; changing the Rendering dropdown resets them all.</li>
-      <li><strong>Auto-contrast</strong> — stretches the tones to use all four levels, so flat or low-contrast
-        images don't come out muddy. Turn off to keep exact tones.</li>
-      <li><strong>Fit</strong> — <em>Cover</em> fills the screen and crops the overflow (best for most wallpapers);
-        <em>Fit</em> letterboxes the whole image; <em>Stretch</em> distorts to fill.</li>
-      <li><strong>Invert</strong> — only if a wallpaper shows up looking like a photo negative on your panel;
-        leave off for the X4 build.</li>
-      <li><strong>Re-target an existing wallpaper</strong> — drop a <code>.pxc</code> straight in. It's decoded and
-        previewed, and the card shows which reader it was made for (<code>from X3</code> / <code>from X4</code>, or
-        its raw size if neither). Switch <em>Screen</em> to the other reader and it re-fits and re-encodes for it
-        (the badge then reads e.g. <code>X3 → X4</code>).</li>
-    </ul>
-    <p class="mono">All conversion is local (HTML canvas). No server, no upload.</p>
-  </details>
+    <details>
+      <summary>How it works &amp; the auto settings</summary>
+      <p><strong>PXC</strong> is the device's packed format: a 4-byte little-endian <code>width,height</code>
+        header then 2 bits/pixel (4 gray levels: black · dark · light · white), MSB-first.
+        <strong>BMP</strong> output is a standard 2-bit, 4-gray bitmap the reader also accepts.</p>
+      <ul>
+        <li><strong>Auto rendering</strong> — the tonal range is measured. Photographs get Floyd–Steinberg
+          dithering; logos / line art / text get crisp thresholding. Click the <code>dither</code> /
+          <code>threshold</code> badge under any result to flip that one image; changing the Rendering
+          dropdown resets them all.</li>
+        <li><strong>Auto-contrast</strong> — stretches tones to use all four levels so flat images don't
+          come out muddy.</li>
+        <li><strong>Fit</strong> — <em>Cover</em> fills and crops; <em>Fit</em> letterboxes;
+          <em>Stretch</em> distorts to fill.</li>
+        <li><strong>Invert</strong> — only if a wallpaper shows up looking like a photo negative on your panel.</li>
+        <li><strong>Re-target</strong> — drop a <code>.pxc</code> straight in; switch <em>Screen</em> to
+          re-fit and re-encode for the other reader (the badge then reads e.g. <code>X3 → X4</code>).</li>
+      </ul>
+      <p class="foot">All conversion is local (HTML canvas). No server, no upload.</p>
+    </details>
   </section>
 
+  <!-- ======================= GALLERY ======================= -->
   <section id="view-gallery" role="tabpanel" hidden>
-    <div class="gintro">
-      <h2>Shared wallpapers</h2>
-      <p>A hand-picked set, ready for your reader. Each is stored as an <span class="mono">X3</span>
-         master and re-targeted in your browser — grab it for <span class="mono">X3</span> as-is, or
-         download an <span class="mono">X4</span> / <span class="mono">BMP</span> version. Nothing is
-         uploaded; conversion happens locally.</p>
+    <div class="hero">
+      <div class="tex"></div>
+      <div class="in">
+        <div class="label">Free · No upload · Ready for your reader</div>
+        <h2>Wallpapers,<br>hand-picked.</h2>
+        <p>Each one is stored as an <span class="k">X3</span> master and re-targeted in your browser —
+          grab it for <span class="k">X3</span> as-is, or download an <span class="k">X4</span> /
+          <span class="k">BMP</span> version. Nothing leaves your machine.</p>
+      </div>
     </div>
     <div class="gstate" id="gstate" hidden></div>
     <div class="ggrid" id="ggrid"></div>
   </section>
 
-  <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a> / CrossPoint e-reader · single-file, offline-capable.</footer>
+  <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a>
+    / CrossPoint e-reader · single-file, offline-capable.</footer>
 </div>
 
 <script>
 "use strict";
+const INK = "#0a0a0a";
+const LEVELS = [0,85,170,255];
 // ---------- state ----------
 const S = { w:480, h:800, fmt:"pxc", fit:"stretch", mode:"auto", contrast:1, invert:0, files:[] };
-const LEVELS = [0,85,170,255];
+
+// ---------- brutalist press feedback ----------
+// Nudges an element down-right and shrinks its hard shadow while pressed, so
+// buttons/links feel physically clicked. `base` is the resting box-shadow.
+function press(el, base){
+  base = base || "4px 4px 0 0 "+INK;
+  el.style.transition = "transform .08s cubic-bezier(.32,.72,.12,1),box-shadow .08s";
+  el.style.boxShadow = base;
+  const down = ()=>{ el.style.transform="translate(2px,2px)"; el.style.boxShadow="2px 2px 0 0 "+INK; };
+  const up   = ()=>{ el.style.transform=""; el.style.boxShadow=base; };
+  el.addEventListener("mousedown",down); el.addEventListener("mouseup",up);
+  el.addEventListener("mouseleave",up); el.addEventListener("blur",up);
+}
 
 // ---------- segmented control wiring ----------
 function seg(id, on){
@@ -264,10 +338,7 @@ function seg(id, on){
     on(b); rerender();
   });
 }
-seg("segSize", b=>{ S.w=+b.dataset.w; S.h=+b.dataset.h;
-  // sensible invert default per panel, without locking it
-  const inv = document.getElementById("segInvert");
-});
+seg("segSize", b=>{ S.w=+b.dataset.w; S.h=+b.dataset.h; });
 seg("segFmt", b=> S.fmt=b.dataset.fmt);
 seg("segContrast", b=> S.contrast=+b.dataset.v);
 seg("segInvert", b=> S.invert=+b.dataset.v);
@@ -284,6 +355,7 @@ fileInput.addEventListener("change", e=>addFiles(e.target.files));
 ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
 drop.addEventListener("drop", e=>{ if(e.dataTransfer?.files) addFiles(e.dataTransfer.files); });
 document.getElementById("clear").addEventListener("click", ()=>{S.files=[];render();});
+press(document.getElementById("clear")); press(document.getElementById("dlAll"));
 
 // Which reader a given pixel size was authored for (null = neither/custom).
 function deviceForSize(w,h){
@@ -459,11 +531,11 @@ function buildCard(f){
   const conv=convert(f); f.conv=conv;
   const card=document.createElement("div"); card.className="card";
   const cv=document.createElement("canvas"); card.appendChild(cv); drawPreview(cv,conv.idx);
-  const name=document.createElement("div"); name.className="name mono"; name.textContent=conv.filename;
+  const name=document.createElement("div"); name.className="name"; name.textContent=conv.filename;
   const meta=document.createElement("div"); meta.className="meta";
-  const tag=document.createElement("button"); tag.type="button"; tag.className="tag toggle";
-  tag.textContent=conv.dither?"dither":"threshold";
-  tag.title="Click to switch rendering (dither ↔ threshold)";
+  const tag=document.createElement("button"); tag.type="button"; tag.className="pill pill-toggle";
+  tag.textContent=(conv.dither?"dither":"threshold")+" ⇄";
+  tag.title="Switch rendering (dither ↔ threshold)";
   tag.addEventListener("click", ()=>{
     f.mode = conv.dither ? "threshold" : "dither";   // toggle this image only
     card.replaceWith(buildCard(f));
@@ -476,13 +548,13 @@ function buildCard(f){
   if(f.srcW){
     const from = f.srcDevice ? f.srcDevice : `${f.srcW}×${f.srcH}`;
     const to = deviceForSize(S.w,S.h);
-    const src=document.createElement("span"); src.className="tag";
-    src.style.background="var(--accent-soft)"; src.style.color="var(--sub)";
+    const src=document.createElement("span"); src.className="pill pill-src";
     src.textContent = (to && f.srcDevice && to!==f.srcDevice) ? `${from} → ${to}` : `from ${from}`;
     meta.append(src);
   }
   const a=document.createElement("a"); a.className="dl"; a.textContent="Download";
   a.href=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"})); a.download=conv.filename;
+  press(a);
   card.append(name,meta,a);
   return card;
 }
@@ -539,9 +611,13 @@ function triggerDownload(bytes, filename){
   a.download=filename; a.click();
 }
 
-function galleryCard(entry, img, w, h){
+// Re-trigger the e-ink refresh flash on a canvas (restart the animation).
+function einkFlash(el){ el.style.animation="none"; void el.offsetWidth; el.style.animation="lwc-eink .55s steps(1,end)"; }
+
+function galleryCard(entry, img, w, h, i){
   const base=entry.file.replace(/\.[^.]+$/,"");
   const card=document.createElement("div"); card.className="gcard";
+  card.style.animationDelay=(i*70)+"ms";
   const frame=document.createElement("div"); frame.className="gframe";
   const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
   cv.getContext("2d").drawImage(img,0,0);        // decoded X3 master, straight to canvas
@@ -554,6 +630,7 @@ function galleryCard(entry, img, w, h){
   const main=document.createElement("a"); main.className="gdl-main";
   main.href="gallery/"+entry.file; main.download=entry.file;
   main.textContent="Download · X3 PXC";
+  press(main);
   // Everything else is re-encoded on click from the decoded master.
   const alt=document.createElement("div"); alt.className="gdl-alt";
   [["X4 PXC",480,800,"pxc"],["X3 BMP",528,792,"bmp"],["X4 BMP",480,800,"bmp"]].forEach(([label,tw,th,fmt])=>{
@@ -564,6 +641,8 @@ function galleryCard(entry, img, w, h){
     alt.appendChild(btn);
   });
   card.append(main,alt);
+  // Hover: lift the card and pulse the preview like an e-ink page refresh.
+  card.addEventListener("mouseenter", ()=>einkFlash(cv));
   return card;
 }
 
@@ -591,15 +670,11 @@ async function loadGallery(){
       if(!parsed) continue;
       const img=new Image();
       await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=parsed.dataURL; });
-      const card=galleryCard(entry,img,parsed.w,parsed.h);
-      card.style.animationDelay=(shown*70)+"ms";
-      grid.appendChild(card); shown++;
+      grid.appendChild(galleryCard(entry,img,parsed.w,parsed.h,shown)); shown++;
     }catch(_){ /* skip an unreadable entry, keep the rest */ }
   }
   if(!shown) showState("Couldn't load the shared wallpapers.");
 }
-
-// theme toggle support (host stamps data-theme); nothing else needed.
 </script>
 </body>
 </html>
