@@ -36,21 +36,15 @@ byte-for-byte.
 
 ## Gallery
 
-The **Gallery** tab shares a set of ready-made wallpapers. Each is stored once as an `X3` (528×792)
-`.pxc` master in [`gallery/`](gallery/) — about 105 KB, since `.pxc` is uncompressed 2-bit, so every
-X3 file is exactly 104,548 bytes regardless of the picture. The page decodes each master in the
-browser to draw the preview, offers the X3 `.pxc` as-is, and re-targets to `X4` or to `.bmp` locally
-on download (no server, nothing uploaded).
+The **Gallery** tab shares 3,190 ready-made wallpapers stored as sequentially named `.pxc` files in
+[`gallery/`](gallery/). Original X3 (528×792) and X4 (480×800) bytes are preserved exactly. The page
+shows one 24-preview page at a time to keep memory and network use bounded, offers each original master as-is,
+and re-targets to the other screen or to `.bmp` locally on demand.
 
-At ~105 KB apiece a few hundred wallpapers still sit comfortably inside GitHub's limits, so the ceiling
-is curation, not storage.
-
-**Add your own:** export an `X3 · PXC` from the converter, drop the file into `gallery/`, and append an
-entry to [`gallery/manifest.json`](gallery/manifest.json):
-
-```json
-{ "file": "my-wallpaper.pxc", "title": "My Wallpaper", "credit": "you" }
-```
+Run `node scripts/import-gallery.mjs ~/Downloads` to rebuild the gallery from a folder tree. The importer
+finds `.pxc` files recursively, validates X3/X4 dimensions, removes exact byte duplicates from the import,
+sorts deterministically, copies masters as `0001.pxc` onward, and regenerates the manifest. It reports
+source duplicates but never deletes source files.
 
 The gallery loads over http (the live site or a local server); the Converter tab still works fully
 offline.

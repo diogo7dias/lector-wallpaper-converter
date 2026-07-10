@@ -163,6 +163,9 @@
     border:3px dashed var(--dash);border-radius:6px;background:var(--panel);}
   .gstate[hidden]{display:none;}
   .ggrid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px;}
+  .gactions{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:28px;}
+  .gactions[hidden]{display:none;}
+  .gcount{font-family:var(--mono);font-size:12px;color:var(--sub);letter-spacing:.04em;}
 
   /* ---- gallery card ---- */
   .gcard{background:var(--panel);border:3px solid var(--ink);border-radius:6px;padding:12px;
@@ -335,13 +338,18 @@
       <div class="in">
         <div class="label">Free · No upload · Ready for your reader</div>
         <h2>Wallpapers,<br>hand-picked.</h2>
-        <p>Each one is stored as an <span class="k">X3</span> master and re-targeted in your browser —
-          grab it for <span class="k">X3</span> as-is, or download an <span class="k">X4</span> /
-          <span class="k">BMP</span> version. Nothing leaves your machine.</p>
+        <p>Each original <span class="k">PXC</span> master stays byte-for-byte intact and is re-targeted
+          in your browser for <span class="k">X3</span>, <span class="k">X4</span>, or
+          <span class="k">BMP</span>. Nothing leaves your machine.</p>
       </div>
     </div>
     <div class="gstate" id="gstate" hidden></div>
     <div class="ggrid" id="ggrid"></div>
+    <div class="gactions" id="gactions" hidden>
+      <button class="btn btn-ghost" id="gprev" type="button" hidden>Previous</button>
+      <button class="btn btn-ghost" id="gloadMore" type="button">Load more</button>
+      <span class="gcount" id="gcount" aria-live="polite"></span>
+    </div>
   </section>
 
   <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a>
@@ -436,6 +444,27 @@ function parsePxc(buf){
       d[p]=d[p+1]=d[p+2]=v; d[p+3]=255; } }
   ctx.putImageData(im,0,0);
   return { w, h, dataURL:c.toDataURL() };
+}
+
+const GALLERY_PREVIEW_WIDTH=240;
+function previewPxc(buf){
+  if(buf.byteLength<4) return null;
+  const dv=new DataView(buf),bytes=new Uint8Array(buf);
+  const w=dv.getUint16(0,true),h=dv.getUint16(2,true),stride=(w+3)>>2;
+  if(w<1||h<1||buf.byteLength<4+stride*h) return null;
+  const pw=Math.min(w,GALLERY_PREVIEW_WIDTH),ph=Math.round(h*pw/w);
+  const canvas=document.createElement("canvas"); canvas.width=pw; canvas.height=ph;
+  const ctx=canvas.getContext("2d"),image=ctx.createImageData(pw,ph),data=image.data;
+  for(let y=0;y<ph;y++){
+    const sy=Math.min(h-1,Math.floor(y*h/ph)),row=4+sy*stride;
+    for(let x=0;x<pw;x++){
+      const sx=Math.min(w-1,Math.floor(x*w/pw));
+      const q=(bytes[row+(sx>>2)]>>(6-((sx&3)<<1)))&3,v=LEVELS[q],p=(y*pw+x)*4;
+      data[p]=data[p+1]=data[p+2]=v; data[p+3]=255;
+    }
+  }
+  ctx.putImageData(image,0,0);
+  return {w,h,canvas};
 }
 
 function addFiles(list){
@@ -663,36 +692,54 @@ function convertImageTo(img, w, h, fmt){
 
 function triggerDownload(bytes, filename){
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
-  a.download=filename; a.click();
+  const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 // Re-trigger the e-ink refresh flash on a canvas (restart the animation).
 function einkFlash(el){ el.style.animation="none"; void el.offsetWidth; el.style.animation="lwc-eink .55s steps(1,end)"; }
 
-function galleryCard(entry, img, w, h, i){
+async function loadGalleryMaster(entry){
+  const response=await fetch("gallery/"+entry.file);
+  if(!response.ok) throw new Error(response.status);
+  const parsed=parsePxc(await response.arrayBuffer());
+  if(!parsed) throw new Error("Invalid PXC");
+  const image=new Image();
+  await new Promise((ok,no)=>{image.onload=ok;image.onerror=no;image.src=parsed.dataURL;});
+  return image;
+}
+
+function galleryCard(entry, cv, w, h, i){
   const base=entry.file.replace(/\.[^.]+$/,"");
+  const masterDevice=w===528&&h===792?"X3":"X4";
   const card=document.createElement("div"); card.className="gcard";
   card.style.animationDelay=(i*70)+"ms";
   const frame=document.createElement("div"); frame.className="gframe";
-  const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
-  cv.getContext("2d").drawImage(img,0,0);        // decoded X3 master, straight to canvas
   const sz=document.createElement("div"); sz.className="gsize"; sz.textContent=`${w}×${h}`;
   frame.append(cv,sz);
   const title=document.createElement("div"); title.className="gtitle"; title.textContent=entry.title||base;
   card.append(frame,title);
   if(entry.credit){ const cr=document.createElement("div"); cr.className="gcredit"; cr.textContent=entry.credit; card.append(cr); }
-  // Original X3 .pxc is served as-is (byte-for-byte the stored master).
+  // Original .pxc is served as-is (byte-for-byte the stored master).
   const main=document.createElement("a"); main.className="gdl-main";
   main.href="gallery/"+entry.file; main.download=entry.file;
-  main.textContent="Download · X3 PXC";
+  main.textContent=`Download · ${masterDevice} PXC`;
   press(main);
   // Everything else is re-encoded on click from the decoded master.
   const alt=document.createElement("div"); alt.className="gdl-alt";
-  [["X4 PXC",480,800,"pxc"],["X3 BMP",528,792,"bmp"],["X4 BMP",480,800,"bmp"]].forEach(([label,tw,th,fmt])=>{
+  [["X3 PXC",528,792,"pxc"],["X4 PXC",480,800,"pxc"],
+   ["X3 BMP",528,792,"bmp"],["X4 BMP",480,800,"bmp"]]
+    .filter(([,tw,th,fmt])=>!(fmt==="pxc"&&tw===w&&th===h))
+    .forEach(([label,tw,th,fmt])=>{
     const btn=document.createElement("button"); btn.type="button"; btn.textContent=label;
-    btn.addEventListener("click", ()=>{
-      triggerDownload(convertImageTo(img,tw,th,fmt), `${base}-${tw===480?"x4":"x3"}.${fmt}`);
+    btn.addEventListener("click", async()=>{
+      const label=btn.textContent; btn.disabled=true; btn.textContent="Working…";
+      try{
+        const image=await loadGalleryMaster(entry);
+        triggerDownload(convertImageTo(image,tw,th,fmt),`${base}-${tw===480?"x4":"x3"}.${fmt}`);
+      }catch(_){ btn.textContent="Failed"; await new Promise(resolve=>setTimeout(resolve,900)); }
+      finally{btn.disabled=false;btn.textContent=label;}
     });
     alt.appendChild(btn);
   });
@@ -714,23 +761,41 @@ async function loadGallery(){
     showState("The gallery needs its files served over http — open the live site, or run a local server. The converter tab works offline regardless.");
     return;
   }
-  const list=(manifest && manifest.wallpapers) || [];
-  if(!list.length){ showState("No wallpapers shared yet."); return; }
+  galleryEntries=(manifest && manifest.wallpapers) || [];
+  if(!galleryEntries.length){ showState("No wallpapers shared yet."); return; }
   state.hidden=true;
+  await renderGalleryBatch(0);
+}
+
+const GALLERY_BATCH_SIZE=24;
+let galleryEntries=[], galleryCursor=0, galleryPageStart=0, galleryRendered=0, galleryFailures=0, galleryBusy=false;
+async function renderGalleryBatch(start){
+  if(galleryBusy) return;
+  const grid=document.getElementById("ggrid"), state=document.getElementById("gstate");
+  const actions=document.getElementById("gactions"), more=document.getElementById("gloadMore"), prev=document.getElementById("gprev");
+  const count=document.getElementById("gcount");
+  galleryPageStart=start; galleryCursor=start; galleryRendered=0; galleryFailures=0; grid.replaceChildren();
+  const batch=galleryEntries.slice(galleryCursor,galleryCursor+GALLERY_BATCH_SIZE);
+  galleryBusy=true; more.disabled=true; more.textContent="Loading…"; actions.hidden=false;
   let shown=0;
-  for(const entry of list){
+  for(const entry of batch){
     try{
       const res=await fetch("gallery/"+entry.file);
       if(!res.ok) throw new Error(res.status);
-      const parsed=parsePxc(await res.arrayBuffer());
+      const parsed=previewPxc(await res.arrayBuffer());
       if(!parsed) continue;
-      const img=new Image();
-      await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=parsed.dataURL; });
-      grid.appendChild(galleryCard(entry,img,parsed.w,parsed.h,shown)); shown++;
-    }catch(_){ /* skip an unreadable entry, keep the rest */ }
+      grid.appendChild(galleryCard(entry,parsed.canvas,parsed.w,parsed.h,shown)); shown++; galleryRendered++;
+    }catch(_){ galleryFailures++; }
   }
-  if(!shown) showState("Couldn't load the shared wallpapers.");
+  galleryCursor+=batch.length;
+  galleryBusy=false; more.disabled=false; more.textContent="Load more";
+  count.textContent=`${galleryPageStart+1}–${galleryCursor} of ${galleryEntries.length}`;
+  prev.hidden=galleryPageStart===0; more.hidden=galleryCursor>=galleryEntries.length;
+  if(galleryFailures){state.hidden=false;state.textContent=`Skipped ${galleryFailures} unreadable wallpaper${galleryFailures===1?"":"s"}.`;}
+  if(!grid.children.length){ state.hidden=false; state.textContent="Couldn't load the shared wallpapers."; }
 }
+document.getElementById("gloadMore").addEventListener("click",()=>renderGalleryBatch(galleryCursor));
+document.getElementById("gprev").addEventListener("click",()=>renderGalleryBatch(Math.max(0,galleryPageStart-GALLERY_BATCH_SIZE)));
 </script>
 </body>
 </html>
