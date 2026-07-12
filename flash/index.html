@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lector Flasher</title>
+<script>
+  (()=>{
+    let saved=null;
+    try{saved=localStorage.getItem("lector-theme");}catch(_e){}
+    const theme=saved==="light"||saved==="dark"
+      ? saved
+      : (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+    document.documentElement.dataset.theme=theme;
+    document.documentElement.style.colorScheme=theme;
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<!-- Flash engine: esp-web-tools (Web Serial in-browser flasher). Pinned to major 10. -->
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+<style>
+  :root{
+    --paper:#f5f1e6; --panel:#fbf8ef; --ink:#0a0a0a; --text:#1c1b18;
+    --sub:#5e5851; --soft:#d8d1bd; --dash:#b8afa0; --code:#ebe5d4;
+    --red:#e1422f; --yellow:#ffcb1f; --yellow-soft:#fff1a8; --on-red:#fffaf5;
+    --on-ink:#f5f1e6; --accent-ink:#0a0a0a;
+    --hero-bg:#0a0a0a; --hero-text:#f5f1e6; --hero-sub:#b8afa0;
+    --sans:'Archivo','Helvetica Neue',system-ui,sans-serif;
+    --serif:'Newsreader',Georgia,'Times New Roman',serif;
+    --mono:'JetBrains Mono',ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --black:'Archivo Black','Archivo',sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --paper:#141412; --panel:#1e1d1a; --ink:#bcb5a8; --text:#ded8cc;
+    --sub:#aaa397; --soft:#45433d; --dash:#736e64; --code:#292822;
+    --red:#b83427; --yellow:#d7aa28; --yellow-soft:#3a3217; --on-red:#f1e5df;
+    --on-ink:#171613; --accent-ink:#17130a;
+    --hero-bg:#24221e; --hero-text:#ded8cc; --hero-sub:#aaa397;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--text);font-family:var(--sans);line-height:1.45;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  ::selection{background:var(--yellow);color:var(--accent-ink);}
+  a{color:var(--ink);}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 24px 90px;}
+  .mono{font-family:var(--mono);}
+  code{font-family:var(--mono);background:var(--code);border:1px solid var(--ink);border-radius:2px;padding:1px 5px;}
+
+  /* ---- header ---- */
+  .topline{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:500;
+    padding-bottom:8px;}
+  .topline-right{display:flex;align-items:center;gap:14px;}
+  .backlink{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--sub);text-decoration:none;font-weight:500;}
+  .backlink:hover{color:var(--ink);}
+  .theme-toggle{appearance:none;display:grid;place-items:center;width:30px;height:30px;padding:0;
+    border:2px solid var(--ink);border-radius:50%;background:var(--panel);color:var(--ink);
+    cursor:pointer;box-shadow:2px 2px 0 var(--ink);}
+  .theme-toggle:hover{background:var(--yellow);color:var(--accent-ink);}
+  .theme-toggle:focus-visible{outline:3px solid var(--red);outline-offset:3px;}
+  .theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .theme-toggle .icon-sun{display:none;}
+  :root[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
+  :root[data-theme="dark"] .theme-toggle .icon-moon{display:none;}
+  .rule-thin{border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);height:3px;}
+  .rule{border-top:3px solid var(--ink);}
+  .masthead{display:flex;align-items:center;gap:20px;padding:18px 0 14px;}
+  .logo{flex:none;width:60px;height:60px;border:3px solid var(--ink);background:var(--panel);
+    box-shadow:4px 4px 0 0 var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .logo svg{width:100%;height:100%;display:block;}
+  .masthead h1{font-family:var(--serif);font-weight:600;font-size:40px;line-height:1;
+    letter-spacing:-.02em;color:var(--ink);margin:0;}
+  .masthead p{margin:8px 0 0;color:var(--sub);font-size:14.5px;max-width:64ch;}
+
+  /* ---- panels ---- */
+  .panel{background:var(--panel);border:3px solid var(--ink);box-shadow:6px 6px 0 0 var(--ink);
+    border-radius:6px;padding:24px;margin-top:24px;}
+  .note{margin-top:16px;padding-top:14px;border-top:1px solid var(--soft);color:var(--sub);
+    font-size:12.5px;line-height:1.5;}
+  .note strong{color:var(--ink);}
+
+  /* ---- version tag ---- */
+  .verline{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--sub);font-weight:500;margin-bottom:6px;}
+  .verval{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ink);line-height:1;
+    letter-spacing:-.01em;}
+  .verval .dim{color:var(--sub);}
+
+  /* ---- buttons ---- */
+  .btn{border:3px solid var(--ink);border-radius:6px;padding:14px 26px;font-size:16px;font-weight:800;
+    cursor:pointer;font-family:var(--sans);box-shadow:5px 5px 0 0 var(--ink);letter-spacing:.01em;
+    transition:transform .08s cubic-bezier(.32,.72,.12,1),box-shadow .08s;}
+  .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 0 var(--ink);}
+  .btn-red{background:var(--red);color:var(--on-red);}
+  .btn-ghost{background:transparent;color:var(--ink);box-shadow:4px 4px 0 0 var(--ink);
+    padding:10px 18px;font-size:13.5px;}
+
+  .actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:22px;}
+  esp-web-install-button{--esp-tools-button-color:var(--on-red);}
+  .fallback{font-family:var(--mono);font-size:12.5px;color:var(--red);font-weight:600;}
+
+  /* ---- rescue block ---- */
+  .rescue{margin-top:30px;padding-top:22px;border-top:3px dashed var(--dash);}
+  .rescue h3{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:.02em;
+    text-transform:uppercase;color:var(--ink);margin:0 0 6px;}
+  .rescue p{color:var(--sub);font-size:13px;margin:0 0 14px;max-width:60ch;line-height:1.5;}
+  .warn{background:var(--yellow-soft);border:2px solid var(--ink);border-radius:5px;padding:10px 12px;
+    color:var(--ink);font-size:12.5px;line-height:1.5;margin:0 0 14px;max-width:60ch;}
+  .warn strong{font-weight:800;}
+
+  /* ---- steps ---- */
+  .steps{list-style:none;counter-reset:s;padding:0;margin:0;display:grid;gap:12px;}
+  .steps li{counter-increment:s;position:relative;padding-left:40px;color:var(--text);font-size:14px;line-height:1.5;}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;
+    display:grid;place-items:center;background:var(--ink);color:var(--on-ink);border-radius:50%;
+    font-family:var(--mono);font-size:13px;font-weight:700;}
+  .steps strong{color:var(--ink);}
+
+  /* ---- how it works ---- */
+  details{margin-top:24px;border:3px solid var(--ink);border-radius:6px;background:var(--panel);
+    box-shadow:4px 4px 0 0 var(--ink);padding:16px 18px;}
+  summary{cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:800;color:var(--ink);}
+  details p{color:var(--sub);font-size:13.5px;margin:12px 0 0;}
+  details ul{color:var(--sub);font-size:13.5px;padding-left:20px;margin:12px 0 0;line-height:1.55;}
+  details strong{color:var(--ink);}
+
+  /* ---- footer ---- */
+  footer{margin-top:40px;padding-top:18px;border-top:3px solid var(--ink);color:var(--sub);
+    font-size:12.5px;text-align:center;font-family:var(--mono);letter-spacing:.04em;}
+  footer a{color:var(--ink);font-weight:700;}
+
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="topline">
+      <a class="backlink" href="../">&larr; Wallpaper Converter</a>
+      <span class="topline-right">
+        <span>Est. 2026 · CrossPoint</span>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4a8.5 8.5 0 1 0 11.2 11.2Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </span>
+    </div>
+    <div class="rule-thin"></div>
+    <div class="masthead">
+      <div class="logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lector"><g transform="translate(50 50) rotate(-38) scale(1.18) translate(-50 -50)" fill="#0a0a0a"><path d="M35 42 L35 20 L45 20 L45 32 L55 32 L55 20 L65 20 L65 42 Z"/><rect x="44" y="38" width="12" height="30" rx="6"/><circle cx="50" cy="72" r="13"/><circle cx="50" cy="72" r="5.5" fill="#fbf8ef"/></g></svg></div>
+      <div style="flex:1;min-width:0">
+        <h1>Lector Flasher</h1>
+        <p>Flash the latest Lector firmware straight to a plugged-in X3 or X4 from your browser —
+           nothing to install. One build serves both readers; the device is detected on boot.</p>
+      </div>
+    </div>
+    <div class="rule"></div>
+  </header>
+
+  <section>
+    <div class="panel">
+      <div class="verline">Current build on this page</div>
+      <div class="verval" id="version"><span class="dim">v</span><span id="versionNum">…</span></div>
+
+      <div class="actions">
+        <esp-web-install-button manifest="manifest-update.json">
+          <button class="btn btn-red" slot="activate" type="button">Update my reader</button>
+          <span slot="unsupported" class="fallback">Web Serial not available — open this page in Chrome or Edge on a desktop.</span>
+          <span slot="not-allowed" class="fallback">Open the live https page (Web Serial needs a secure connection).</span>
+        </esp-web-install-button>
+      </div>
+
+      <div class="note"><strong>Update</strong> writes only the app image. Your books, settings, and Wi-Fi stay
+        untouched. Your reader must already be running Lector / CrossPoint. Takes about 30 seconds.</div>
+
+      <!-- ---- rescue ---- -->
+      <div class="rescue">
+        <h3>Full rescue flash</h3>
+        <p>Only for a dead, blank, or bricked device — this rewrites the bootloader, partition table, and app
+           from scratch.</p>
+        <div class="warn"><strong>Warning:</strong> a full flash erases everything on the device, including any
+          books and settings stored in flash. Use it only to revive a device that will not boot.</div>
+        <div class="actions">
+          <esp-web-install-button manifest="manifest-full.json" erase-first>
+            <button class="btn btn-ghost" slot="activate" type="button">Full rescue flash (erases device)</button>
+            <span slot="unsupported" class="fallback">Web Serial not available — open in Chrome or Edge on desktop.</span>
+            <span slot="not-allowed" class="fallback">Open the live https page first.</span>
+          </esp-web-install-button>
+        </div>
+        <p id="rescueMissing" class="fallback" hidden>Rescue files are not published yet — they land with the next
+          Lector release. The Update button above works now.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <ol class="steps">
+        <li>Open this page in <strong>Chrome</strong> or <strong>Edge</strong> on a computer (Web Serial only).</li>
+        <li>Plug the reader into a USB port with a <strong>data</strong> cable.</li>
+        <li>Click <strong>Update my reader</strong> and pick the reader's serial port when asked.</li>
+        <li>Wait for the flash to finish. The reader reboots into the new build on its own.</li>
+      </ol>
+      <div class="note">Nothing is uploaded to a server. The firmware file is served from this site and written to
+        the device entirely inside your browser.</div>
+    </div>
+
+    <details>
+      <summary>How this works</summary>
+      <p>Your Lector reader runs on an <strong>ESP32-C3</strong> chip. This page uses
+        <strong>esp-web-tools</strong> (the same in-browser flasher used by many ESP32 projects) to talk to the
+        chip over the USB serial port via the browser's Web Serial API.</p>
+      <ul>
+        <li><strong>Update</strong> writes <code>firmware.bin</code> at offset <code>0x10000</code> — the app
+          partition — and nothing else, so your data survives.</li>
+        <li><strong>Full rescue</strong> writes the bootloader (<code>0x0</code>), partition table
+          (<code>0x8000</code>), OTA data (<code>0xe000</code>), and app (<code>0x10000</code>), then erases the
+          rest. It rebuilds a device from bare metal.</li>
+        <li>One firmware serves <strong>both X3 and X4</strong>; the running code detects the model at boot.</li>
+      </ul>
+    </details>
+  </section>
+
+  <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a>
+    / CrossPoint e-reader · flashes over USB in your browser.</footer>
+</div>
+
+<script>
+"use strict";
+// ---------- theme (mirrors the converter page) ----------
+const themeToggle=document.getElementById("themeToggle");
+function setTheme(theme, persist=false){
+  document.documentElement.dataset.theme=theme;
+  document.documentElement.style.colorScheme=theme;
+  const next=theme==="dark"?"light":"dark";
+  themeToggle.setAttribute("aria-label",`Switch to ${next} mode`);
+  themeToggle.title=`Switch to ${next} mode`;
+  if(persist){ try{localStorage.setItem("lector-theme",theme);}catch(_e){} }
+}
+setTheme(document.documentElement.dataset.theme||"light");
+themeToggle.addEventListener("click",()=>{
+  setTheme(document.documentElement.dataset.theme==="dark"?"light":"dark",true);
+});
+
+// ---------- show the current build ----------
+fetch("version.txt",{cache:"no-cache"})
+  .then(r=>r.ok?r.text():Promise.reject(r.status))
+  .then(t=>{ document.getElementById("versionNum").textContent=t.trim()||"?"; })
+  .catch(()=>{ document.getElementById("versionNum").textContent="unknown"; });
+
+// ---------- flag the rescue button when its files are not published yet ----------
+fetch("firmware/latest/bootloader.bin",{method:"HEAD"})
+  .then(r=>{ if(!r.ok) throw 0; })
+  .catch(()=>{ document.getElementById("rescueMissing").hidden=false; });
+</script>
+</body>
+</html>
