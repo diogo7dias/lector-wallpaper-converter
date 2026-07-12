@@ -58,7 +58,7 @@ test("erase is tied to rescue only — an Update never erases", () => {
 test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /data-view="flash"/);
   assert.match(html, /id="view-flash"/);
-  assert.match(html, /esptool-js@0\.6\.0\/bundle\.js/);
+  assert.match(html, /esptool-js@0\.5\.7\/bundle\.js/);
   assert.match(html, /id="btnUpdate"/);
   assert.match(html, /id="btnRescue"/);
   assert.match(html, /flash\/manifest-update\.json/);

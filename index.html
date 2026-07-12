@@ -785,7 +785,9 @@ tabs.addEventListener("click", e=>{
 // esptool-js writes raw partitions over Web Serial. Unlike a fresh-install
 // browser flasher, it can write the app WITHOUT a full-chip erase, so an Update keeps the user's books,
 // settings and Wi-Fi. Rescue passes eraseAll:true for a from-scratch reflash.
-const FLASH_ENGINE="https://unpkg.com/esptool-js@0.6.0/bundle.js";
+// Pinned to 0.5.7: esptool-js 0.6.0 broke compressed writes with a
+// "status 201,0" failure mid-image (espressif/esptool-js#233). 0.5.7 works.
+const FLASH_ENGINE="https://unpkg.com/esptool-js@0.5.7/bundle.js";
 let esptoolMod=null;
 const flashState={busy:false};
 
