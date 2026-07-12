@@ -118,6 +118,19 @@
   .btn-red{background:var(--red);color:var(--on-red);}
   .btn-ghost{background:transparent;color:var(--ink);}
   .count{color:var(--sub);font-size:13px;font-family:var(--mono);letter-spacing:.04em;}
+  .download-progress{width:100%;margin-top:14px;border:3px solid var(--ink);border-radius:6px;
+    background:var(--paper);box-shadow:4px 4px 0 0 var(--ink);overflow:hidden;}
+  .download-progress[hidden]{display:none;}
+  .download-progress-head{display:flex;justify-content:space-between;gap:12px;padding:8px 10px;
+    border-bottom:3px solid var(--ink);background:var(--yellow-soft);color:var(--ink);
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+  .download-progress-track{position:relative;height:22px;background:
+    repeating-linear-gradient(90deg,var(--panel) 0 10px,var(--paper) 10px 20px);}
+  .download-progress-fill{height:100%;width:0;background:
+    repeating-linear-gradient(45deg,var(--red) 0 9px,var(--yellow) 9px 18px);
+    border-right:3px solid var(--ink);transition:width .18s steps(6,end);}
+  .download-progress.done .download-progress-fill{background:var(--ink);}
+  .download-progress.done .download-progress-head{background:var(--ink);color:var(--on-ink);}
   .results{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;}
 
   /* ---- result card ---- */
@@ -239,6 +252,46 @@
     .gcard{opacity:1;}
     .gcard:hover{transform:none;}
     .gframe canvas,.gcard:hover .gframe canvas{transform:none;}
+    .download-progress-fill{transition:none;}
+  }
+  @media (max-width:700px){
+    .wrap{padding:18px 14px 64px;}
+    .topline{align-items:flex-start;gap:10px;}
+    .topline-right{gap:10px;justify-content:flex-end;text-align:right;}
+    .masthead{align-items:flex-start;gap:14px;}
+    .logo{width:50px;height:50px;box-shadow:3px 3px 0 0 var(--ink);}
+    .masthead h1{font-size:clamp(30px,9vw,38px);}
+    .masthead p{font-size:13.5px;}
+    .tabs{display:flex;width:100%;margin-top:18px;}
+    .tab{flex:1;padding:12px 6px;font-size:13px;}
+    .panel{padding:16px;box-shadow:4px 4px 0 0 var(--ink);}
+    .controls{grid-template-columns:1fr;gap:14px;}
+    .seg button{min-height:44px;font-size:12px;}
+    select,.btn{min-height:44px;}
+    .drop{padding:28px 14px;}
+    .drop .big{font-size:22px;}
+    .bar{align-items:stretch;}
+    .bar .btn{flex:1 1 140px;}
+    .count{flex-basis:100%;font-size:12px;}
+    .results,.ggrid{grid-template-columns:minmax(0,1fr);gap:16px;}
+    .hero{padding:22px 18px;}
+    .hero h2{font-size:clamp(34px,12vw,44px);}
+    .gactions{flex-wrap:wrap;gap:12px;}
+    .gactions .btn{flex:1 1 130px;}
+    #view-flash .panel{padding:18px;}
+    #view-flash .actions{align-items:stretch;}
+    #view-flash .btn{width:100%;padding:14px 16px;}
+  }
+  @media (max-width:430px){
+    .wrap{padding-left:10px;padding-right:10px;}
+    .topline{font-size:10px;}
+    .masthead{display:block;}
+    .logo{margin-bottom:14px;}
+    .tab{font-size:12px;letter-spacing:0;}
+    .tab:not(:last-child){border-right-width:2px;}
+    .panel,details{border-width:2px;}
+    .download-progress-head{display:block;}
+    .download-progress-percent{display:block;margin-top:3px;}
   }
 </style>
 </head>
@@ -340,6 +393,13 @@
         <button class="btn btn-red" id="dlAll">Download all</button>
         <button class="btn btn-ghost" id="clear">Clear</button>
         <span class="count" id="count"></span>
+        <div class="download-progress" id="downloadProgress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+          <div class="download-progress-head">
+            <span id="downloadProgressText">Ready to download</span>
+            <span class="download-progress-percent" id="downloadProgressPercent">0%</span>
+          </div>
+          <div class="download-progress-track"><div class="download-progress-fill" id="downloadProgressFill"></div></div>
+        </div>
       </div>
       <div class="results" id="results"></div>
     </div>
@@ -705,7 +765,11 @@ function convert(f){
 
 // ---------- render UI ----------
 const results=document.getElementById("results"), bar=document.getElementById("bar"),
-      countEl=document.getElementById("count");
+      countEl=document.getElementById("count"),
+      downloadProgress=document.getElementById("downloadProgress"),
+      downloadProgressFill=document.getElementById("downloadProgressFill"),
+      downloadProgressText=document.getElementById("downloadProgressText"),
+      downloadProgressPercent=document.getElementById("downloadProgressPercent");
 
 function drawPreview(canvas, idx){
   const {w,h}=S; canvas.width=w; canvas.height=h;
@@ -746,23 +810,52 @@ function buildCard(f){
   a.href=URL.createObjectURL(new Blob([conv.bytes],{type:"application/octet-stream"})); a.download=conv.filename;
   press(a);
   card.append(name,meta,a);
+  a.addEventListener("click", ()=>showDownloadProgress(1,1,`Downloading ${conv.filename}`));
   return card;
 }
 
 function render(){
   results.innerHTML="";
   bar.hidden = S.files.length===0;
+  if(!S.files.length) hideDownloadProgress();
   countEl.textContent = S.files.length ? `${S.files.length} image${S.files.length>1?"s":""} · ${S.w}×${S.h} · ${S.fmt.toUpperCase()}` : "";
   S.files.forEach(f=>results.appendChild(buildCard(f)));
 }
 function rerender(){ if(S.files.length) render(); }
 
+let downloadProgressTimer=0;
+function hideDownloadProgress(){
+  if(downloadProgressTimer) clearTimeout(downloadProgressTimer);
+  downloadProgress.hidden=true;
+  downloadProgress.classList.remove("done");
+  downloadProgressFill.style.width="0%";
+  downloadProgress.setAttribute("aria-valuenow","0");
+  downloadProgressText.textContent="Ready to download";
+  downloadProgressPercent.textContent="0%";
+}
+function showDownloadProgress(done,total,label){
+  if(downloadProgressTimer) clearTimeout(downloadProgressTimer);
+  const pct=total ? Math.round((done/total)*100) : 0;
+  downloadProgress.hidden=false;
+  downloadProgress.classList.toggle("done",pct>=100);
+  downloadProgressFill.style.width=`${pct}%`;
+  downloadProgress.setAttribute("aria-valuenow",String(pct));
+  downloadProgressText.textContent=label || (pct>=100 ? "Download complete" : "Downloading…");
+  downloadProgressPercent.textContent=`${pct}%`;
+  if(pct>=100) downloadProgressTimer=setTimeout(()=>{downloadProgress.hidden=true;},2200);
+}
+
 document.getElementById("dlAll").addEventListener("click", ()=>{
-  S.files.forEach((f,i)=>setTimeout(()=>{
+  const downloadable=S.files.filter(f=>f.conv);
+  if(!downloadable.length) return;
+  showDownloadProgress(0,downloadable.length,`Starting ${downloadable.length} downloads`);
+  downloadable.forEach((f,i)=>setTimeout(()=>{
     if(!f.conv) return;
     const a=document.createElement("a");
     a.href=URL.createObjectURL(new Blob([f.conv.bytes],{type:"application/octet-stream"}));
     a.download=f.conv.filename; a.click();
+    showDownloadProgress(i+1,downloadable.length,
+      i+1===downloadable.length ? "Downloads complete" : `Downloading ${i+1} of ${downloadable.length}`);
   }, i*150));
 });
 
