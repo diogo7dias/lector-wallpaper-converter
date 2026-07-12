@@ -881,21 +881,21 @@ async function runFlash(mode){
     });
     setPct(100);
     log("Write complete.");
-    // The write is done here. Reset is best-effort: esptool-js 0.5.7 exposes the
-    // hard reset via loader.after(), not loader.hardReset(). Never fail a
-    // completed flash just because the reboot call hiccups.
-    setStatus("Flash complete. Rebooting the reader…");
+    // The write is finished and durable at this point. A USB hard reset does nothing
+    // on the X3/X4 — they ignore the RTS/DTR reboot line — so we do NOT rely on it.
+    // Try it silently in case some board honours it, then always tell the user to
+    // reboot the reader by hand. esptool-js 0.5.7 exposes the reset via loader.after().
     try{
       if(typeof loader.after==="function"){ await loader.after("hard_reset"); }
       else if(typeof loader.hardReset==="function"){ await loader.hardReset(); }
       else if(transport&&transport.setRTS){
         await transport.setRTS(true); await new Promise(r=>setTimeout(r,120)); await transport.setRTS(false);
       }
-      setStatus("Done. Your reader is rebooting into the new build.");
     }catch(resetErr){
-      log("Auto-reset unavailable: "+(resetErr&&resetErr.message?resetErr.message:resetErr));
-      setStatus("Flash complete — unplug and replug the reader to boot the new build.");
+      log("Auto-reset unavailable (expected on X3/X4): "+(resetErr&&resetErr.message?resetErr.message:resetErr));
     }
+    setStatus("✓ Flash complete! Reboot your reader by hand: press Reset, then Power. It does not auto-reboot over USB.");
+    log("Flash complete — reboot the reader manually: Reset, then Power.");
   }catch(err){
     setStatus("Flash failed — see the log below.");
     log("ERROR: "+(err&&err.message?err.message:err));

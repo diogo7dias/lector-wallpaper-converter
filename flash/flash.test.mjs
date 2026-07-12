@@ -92,3 +92,11 @@ test("version.txt is a plain semantic version", () => {
   const v = read("./version.txt").trim();
   assert.match(v, /^\d+\.\d+\.\d+$/);
 });
+
+test("a completed flash tells the user to reboot by hand", () => {
+  // The X3/X4 ignore the USB reset line, so the flasher must NOT claim it is
+  // auto-rebooting; it must instruct a manual Reset + Power. Guard against a
+  // regression back to the misleading "rebooting into the new build" message.
+  assert.match(html, /press Reset, then Power/i);
+  assert.doesNotMatch(html, /is rebooting into the new build/);
+});
