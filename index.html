@@ -785,7 +785,9 @@ tabs.addEventListener("click", e=>{
 // esptool-js writes raw partitions over Web Serial. Unlike a fresh-install
 // browser flasher, it can write the app WITHOUT a full-chip erase, so an Update keeps the user's books,
 // settings and Wi-Fi. Rescue passes eraseAll:true for a from-scratch reflash.
-const FLASH_ENGINE="https://unpkg.com/esptool-js@0.6.0/bundle.js";
+// Pinned to 0.5.7: esptool-js 0.6.0 broke compressed writes with a
+// "status 201,0" failure mid-image (espressif/esptool-js#233). 0.5.7 works.
+const FLASH_ENGINE="https://unpkg.com/esptool-js@0.5.7/bundle.js";
 let esptoolMod=null;
 const flashState={busy:false};
 
@@ -865,15 +867,12 @@ async function runFlash(mode){
     setStatus("Connecting to the reader…");
     const chip=await loader.main();
     log("Detected chip: "+chip);
-    log("Safe mode: 460800 baud, no compression.");
     setStatus(erase?"Erasing and writing (full flash)…":"Writing update (no erase)…");
     await loader.writeFlash({
       fileArray:parts,
       flashSize:"keep",
       eraseAll:erase,
-      // Uncompressed writes: the ESP32-C3 stub's deflate path can desync
-      // deterministically on large images (fails at the same seq every run).
-      compress:false,
+      compress:true,
       reportProgress:(idx,written,total)=>{
         const pct=Math.round((written/total)*100);
         setPct(pct);
