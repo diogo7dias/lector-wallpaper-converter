@@ -55,6 +55,13 @@ test("erase is tied to rescue only — an Update never erases", () => {
   assert.doesNotMatch(html, /esp-web-tools/);
 });
 
+test("writes stay compressed — esptool-js 0.5.7 has no uncompressed path", () => {
+  // compress:false throws 'Yet to handle Non Compressed writes' in esptool-js,
+  // so the write MUST be compressed. Guard against a regression.
+  assert.match(html, /compress\s*:\s*true/);
+  assert.doesNotMatch(html, /compress\s*:\s*false/);
+});
+
 test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /data-view="flash"/);
   assert.match(html, /id="view-flash"/);
