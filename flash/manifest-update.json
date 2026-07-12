@@ -1,11 +1,12 @@
 {
   "name": "Lector",
   "version": "0.7.0",
-  "new_install_prompt_erase": false,
+  "erase": false,
   "builds": [
     {
       "chipFamily": "ESP32-C3",
       "parts": [
+        { "path": "firmware/latest/boot_app0.bin", "offset": 57344 },
         { "path": "firmware/latest/firmware.bin", "offset": 65536 }
       ]
     }

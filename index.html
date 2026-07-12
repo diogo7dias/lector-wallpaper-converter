@@ -190,6 +190,40 @@
     cursor:pointer;transition:background .14s,color .14s;}
   .gdl-alt button:hover{background:var(--yellow);color:var(--accent-ink);}
 
+  /* ---- flasher tab ---- */
+  #view-flash .panel{padding:24px;}
+  .verline{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--sub);font-weight:500;margin-bottom:6px;}
+  .verval{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ink);line-height:1;
+    letter-spacing:-.01em;}
+  .verval .dim{color:var(--sub);}
+  #view-flash .actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:22px;}
+  #view-flash .btn{padding:14px 26px;font-size:16px;box-shadow:5px 5px 0 0 var(--ink);
+    transition:transform .08s cubic-bezier(.32,.72,.12,1),box-shadow .08s;}
+  #view-flash .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 0 var(--ink);}
+  #view-flash .btn-ghost{padding:10px 18px;font-size:13.5px;box-shadow:4px 4px 0 0 var(--ink);}
+  esp-web-install-button{--esp-tools-button-color:var(--on-red);}
+  .fallback{font-family:var(--mono);font-size:12.5px;color:var(--red);font-weight:600;}
+  .rescue{margin-top:30px;padding-top:22px;border-top:3px dashed var(--dash);}
+  .rescue h3{font-family:var(--sans);font-size:14px;font-weight:800;letter-spacing:.02em;
+    text-transform:uppercase;color:var(--ink);margin:0 0 6px;}
+  .rescue p{color:var(--sub);font-size:13px;margin:0 0 14px;max-width:60ch;line-height:1.5;}
+  .warn{background:var(--yellow-soft);border:2px solid var(--ink);border-radius:5px;padding:10px 12px;
+    color:var(--ink);font-size:12.5px;line-height:1.5;margin:0 0 14px;max-width:60ch;}
+  .warn strong{font-weight:800;}
+  .steps{list-style:none;counter-reset:s;padding:0;margin:0;display:grid;gap:12px;}
+  .steps li{counter-increment:s;position:relative;padding-left:40px;color:var(--text);font-size:14px;line-height:1.5;}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;
+    display:grid;place-items:center;background:var(--ink);color:var(--on-ink);border-radius:50%;
+    font-family:var(--mono);font-size:13px;font-weight:700;}
+  .steps strong{color:var(--ink);}
+  .fprog{margin-top:24px;}
+  .fbar{height:14px;border:2px solid var(--ink);border-radius:4px;background:var(--paper);overflow:hidden;}
+  .fbar-fill{height:100%;width:0;background:var(--red);transition:width .2s ease;}
+  .fstatus{margin-top:8px;font-size:12px;color:var(--ink);font-weight:600;}
+  .flog{margin-top:10px;max-height:170px;overflow:auto;background:var(--code);border:2px solid var(--ink);
+    border-radius:4px;padding:8px 10px;font-size:11px;color:var(--sub);white-space:pre-wrap;word-break:break-word;}
+
   /* ---- footer ---- */
   footer{margin-top:40px;padding-top:18px;border-top:3px solid var(--ink);color:var(--sub);
     font-size:12.5px;text-align:center;font-family:var(--mono);letter-spacing:.04em;}
@@ -238,6 +272,7 @@
   <nav class="tabs" id="tabs" role="tablist" aria-label="Views">
     <button class="tab on" data-view="convert" role="tab" aria-selected="true">Converter</button>
     <button class="tab" data-view="gallery" role="tab" aria-selected="false">Gallery</button>
+    <button class="tab" data-view="flash" role="tab" aria-selected="false">Flasher</button>
   </nav>
 
   <!-- ======================= CONVERTER ======================= -->
@@ -350,6 +385,68 @@
       <button class="btn btn-ghost" id="gloadMore" type="button">Load more</button>
       <span class="gcount" id="gcount" aria-live="polite"></span>
     </div>
+  </section>
+
+  <!-- ======================= FLASHER ======================= -->
+  <section id="view-flash" role="tabpanel" hidden>
+    <div class="panel">
+      <div class="verline">Current build on this site</div>
+      <div class="verval"><span class="dim">v</span><span id="flashVersion">…</span></div>
+
+      <div class="actions">
+        <button class="btn btn-red" id="btnUpdate" type="button">Update my reader</button>
+      </div>
+      <div class="note"><strong>Update</strong> writes only the app and resets the boot selector. Your books,
+        settings, and Wi-Fi are <strong>kept</strong> — nothing is erased. Your reader must already be running
+        Lector / CrossPoint. Takes about 30–60 seconds.</div>
+
+      <div class="rescue">
+        <h3>Full rescue flash</h3>
+        <p>Only for a dead, blank, or bricked device — this rewrites the bootloader, partition table, and app
+           from scratch.</p>
+        <div class="warn"><strong>Warning:</strong> a full flash <strong>erases everything</strong> on the device,
+          including books and settings stored in flash. Use it only to revive a device that will not boot.</div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btnRescue" type="button">Full rescue flash (erases device)</button>
+        </div>
+        <p id="flashRescueMissing" class="fallback" hidden>Rescue files are not published yet — they land with the
+          next Lector release. The Update button above works now.</p>
+      </div>
+
+      <div class="fprog" id="flashProgressWrap" hidden>
+        <div class="fbar"><div class="fbar-fill" id="flashBar"></div></div>
+        <div class="fstatus mono" id="flashStatus"></div>
+        <pre class="flog mono" id="flashLog" aria-live="polite"></pre>
+      </div>
+      <p class="fallback" id="flashUnsupported" hidden>This browser cannot flash — open the site in
+        <strong>Chrome</strong> or <strong>Edge</strong> on a desktop (Web Serial is required).</p>
+    </div>
+
+    <div class="panel">
+      <ol class="steps">
+        <li>Use <strong>Chrome</strong> or <strong>Edge</strong> on a computer — you are already here (Web Serial only).</li>
+        <li>Plug the reader into a USB port with a <strong>data</strong> cable.</li>
+        <li>Click <strong>Update my reader</strong> and pick the reader's serial port when asked.</li>
+        <li>Wait for the flash to finish. The reader reboots into the new build on its own.</li>
+      </ol>
+      <div class="note">Nothing is uploaded to a server. The firmware is served from this site and written to the
+        device entirely inside your browser via <strong>esptool-js</strong> (the same engine the official ESP
+        tools use).</div>
+    </div>
+
+    <details>
+      <summary>How this works</summary>
+      <p>Your Lector reader runs on an <strong>ESP32-C3</strong> chip. This talks to the chip over the USB serial
+        port using the browser's Web Serial API.</p>
+      <ul>
+        <li><strong>Update</strong> writes <code>boot_app0.bin</code> (OTA data, <code>0xe000</code>) and
+          <code>firmware.bin</code> (app, <code>0x10000</code>) <strong>without erasing</strong> — so NVS
+          settings and the book storage survive. This is the normal, data-preserving update.</li>
+        <li><strong>Full rescue</strong> erases the chip, then writes the bootloader (<code>0x0</code>), partition
+          table (<code>0x8000</code>), OTA data (<code>0xe000</code>), and app (<code>0x10000</code>).</li>
+        <li>One firmware serves <strong>both X3 and X4</strong>; the running code detects the model at boot.</li>
+      </ul>
+    </details>
   </section>
 
   <footer>Made for the <a href="https://github.com/diogo7dias/lector" target="_blank" rel="noopener">Lector</a>
@@ -663,16 +760,144 @@ document.getElementById("dlAll").addEventListener("click", ()=>{
 
 // ---------- tabs ----------
 const tabs=document.getElementById("tabs");
-const views={convert:document.getElementById("view-convert"), gallery:document.getElementById("view-gallery")};
-let galleryLoaded=false;
-tabs.addEventListener("click", e=>{
-  const b=e.target.closest(".tab"); if(!b) return;
-  const v=b.dataset.view;
-  [...tabs.children].forEach(t=>{const on=t===b; t.classList.toggle("on",on); t.setAttribute("aria-selected",on);});
+const views={convert:document.getElementById("view-convert"),
+             gallery:document.getElementById("view-gallery"),
+             flash:document.getElementById("view-flash")};
+let galleryLoaded=false, flashLoaded=false;
+
+function showView(v){
+  if(!views[v]) v="convert";
+  [...tabs.children].forEach(t=>{const on=t.dataset.view===v; t.classList.toggle("on",on); t.setAttribute("aria-selected",on);});
   views.convert.hidden = v!=="convert";
   views.gallery.hidden = v!=="gallery";
+  views.flash.hidden   = v!=="flash";
   if(v==="gallery" && !galleryLoaded){ galleryLoaded=true; loadGallery(); }
+  if(v==="flash" && !flashLoaded){ flashLoaded=true; initFlasher(); }
+}
+
+tabs.addEventListener("click", e=>{
+  const b=e.target.closest(".tab"); if(!b) return;
+  showView(b.dataset.view);
+  if(b.dataset.view==="flash"){ history.replaceState(null,"","#flash"); }
 });
+
+// ---------- flasher (esptool-js) ----------
+// esptool-js writes raw partitions over Web Serial. Unlike a fresh-install
+// browser flasher, it can write the app WITHOUT a full-chip erase, so an Update keeps the user's books,
+// settings and Wi-Fi. Rescue passes eraseAll:true for a from-scratch reflash.
+const FLASH_ENGINE="https://unpkg.com/esptool-js@0.6.0/bundle.js";
+let esptoolMod=null;
+const flashState={busy:false};
+
+function initFlasher(){
+  fetch("flash/version.txt",{cache:"no-cache"})
+    .then(r=>r.ok?r.text():Promise.reject(r.status))
+    .then(t=>{document.getElementById("flashVersion").textContent=t.trim()||"?";})
+    .catch(()=>{document.getElementById("flashVersion").textContent="unknown";});
+  fetch("flash/firmware/latest/bootloader.bin",{method:"HEAD"})
+    .then(r=>{if(!r.ok) throw 0;})
+    .catch(()=>{document.getElementById("flashRescueMissing").hidden=false;});
+  if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
+  document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
+  document.getElementById("btnRescue").addEventListener("click",()=>{
+    if(confirm("Full rescue flash ERASES the entire device, including books and settings. "+
+               "Only do this to revive a device that will not boot. Continue?")) runFlash("rescue");
+  });
+}
+
+// Convert a byte array to the binary string esptool-js expects, in chunks so we
+// never blow the argument limit of String.fromCharCode on a multi-MB image.
+function bytesToBinaryString(u8){
+  let out=""; const CHUNK=0x8000;
+  for(let i=0;i<u8.length;i+=CHUNK){ out+=String.fromCharCode.apply(null,u8.subarray(i,i+CHUNK)); }
+  return out;
+}
+
+async function fetchBinary(path){
+  const r=await fetch(path,{cache:"no-cache"});
+  if(!r.ok) throw new Error("cannot load "+path+" ("+r.status+")");
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+async function runFlash(mode){
+  if(flashState.busy) return;
+  const erase = mode==="rescue";
+  const wrap=document.getElementById("flashProgressWrap");
+  const bar=document.getElementById("flashBar");
+  const statusEl=document.getElementById("flashStatus");
+  const logEl=document.getElementById("flashLog");
+  const log=(m)=>{ logEl.textContent+=m+"\n"; logEl.scrollTop=logEl.scrollHeight; };
+  const setStatus=(m)=>{ statusEl.textContent=m; };
+  const setPct=(p)=>{ bar.style.width=Math.max(0,Math.min(100,p))+"%"; };
+
+  if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; return; }
+
+  wrap.hidden=false; logEl.textContent=""; setPct(0);
+  setStatus("Loading firmware…");
+
+  // Load the parts named by the manifest (paths are relative to /flash/).
+  let parts;
+  try{
+    const manifest=await (await fetch(erase?"flash/manifest-full.json":"flash/manifest-update.json",{cache:"no-cache"})).json();
+    parts=[];
+    for(const p of manifest.builds[0].parts){
+      log("load "+p.path);
+      const u8=await fetchBinary("flash/"+p.path);
+      parts.push({ data:bytesToBinaryString(u8), address:p.offset });
+    }
+  }catch(err){ setStatus("Could not load the firmware files."); log("ERROR: "+(err.message||err)); return; }
+
+  // Pull in esptool-js on first use.
+  let ESPLoader, Transport;
+  try{
+    if(!esptoolMod) esptoolMod=await import(FLASH_ENGINE);
+    ({ ESPLoader, Transport }=esptoolMod);
+  }catch(err){ setStatus("Could not load the flasher engine."); log("ERROR: "+(err.message||err)); return; }
+
+  let transport;
+  try{
+    flashState.busy=true; setButtonsDisabled(true);
+    setStatus("Pick your reader's serial port…");
+    const port=await navigator.serial.requestPort();
+    transport=new Transport(port, true);
+    const loader=new ESPLoader({ transport, baudrate:921600, romBaudrate:115200,
+      terminal:{ clean(){}, writeLine(d){log(d);}, write(){} } });
+    setStatus("Connecting to the reader…");
+    const chip=await loader.main();
+    log("Detected chip: "+chip);
+    setStatus(erase?"Erasing and writing (full flash)…":"Writing update (no erase)…");
+    await loader.writeFlash({
+      fileArray:parts,
+      flashSize:"keep",
+      eraseAll:erase,
+      compress:true,
+      reportProgress:(idx,written,total)=>{
+        const pct=Math.round((written/total)*100);
+        setPct(pct);
+        setStatus((erase?"Full flash":"Update")+" — part "+(idx+1)+"/"+parts.length+" — "+pct+"%");
+      },
+    });
+    setPct(100);
+    setStatus("Rebooting the reader…");
+    log("Write complete. Resetting device.");
+    await loader.hardReset();
+    setStatus("Done. Your reader is rebooting into the new build.");
+  }catch(err){
+    setStatus("Flash failed — see the log below.");
+    log("ERROR: "+(err&&err.message?err.message:err));
+  }finally{
+    try{ if(transport) await transport.disconnect(); }catch(_e){}
+    flashState.busy=false; setButtonsDisabled(false);
+  }
+}
+
+function setButtonsDisabled(d){
+  const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
+  const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
+}
+
+// Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
+if(location.hash==="#flash"){ showView("flash"); }
 
 // ---------- gallery ----------
 // Re-encode a decoded wallpaper to a target screen+format, reusing the
