@@ -397,19 +397,23 @@
         <button class="btn btn-red" id="btnUpdate" type="button">Update my reader</button>
       </div>
       <div class="note"><strong>Update</strong> writes only the app and resets the boot selector. Your books,
-        settings, and Wi-Fi are <strong>kept</strong> — nothing is erased. Your reader must already be running
-        Lector / CrossPoint. Takes about 30–60 seconds.</div>
+        settings, and Wi-Fi are <strong>kept</strong> — nothing is erased. Your reader must <strong>already be
+        running Lector / CrossPoint</strong>. Takes about 30–60 seconds.
+        <br><strong>New device?</strong> If your reader does not have Lector yet, use the
+        <strong>full install</strong> below instead — Update alone will not work on a stock device.</div>
 
       <div class="rescue">
-        <h3>Full rescue flash</h3>
-        <p>Only for a dead, blank, or bricked device — this rewrites the bootloader, partition table, and app
-           from scratch.</p>
-        <div class="warn"><strong>Warning:</strong> a full flash <strong>erases everything</strong> on the device,
-          including books and settings stored in flash. Use it only to revive a device that will not boot.</div>
+        <h3>Install on a new device — or full rescue</h3>
+        <p>Use this if your reader <strong>does not have Lector yet</strong> (fresh from the shop, still on the
+           stock firmware), or if a device is dead, blank, or bricked. It writes the bootloader, partition table,
+           and app from scratch — everything a reader needs to run Lector.</p>
+        <div class="warn"><strong>Warning:</strong> a full flash <strong>erases everything</strong> on the device.
+          On a brand-new reader there is nothing of yours to lose. On a reader you have used, its books and settings
+          stored in flash are erased. Book files on the SD card are not touched.</div>
         <div class="actions">
-          <button class="btn btn-ghost" id="btnRescue" type="button">Full rescue flash (erases device)</button>
+          <button class="btn btn-ghost" id="btnRescue" type="button">Full install / rescue flash (erases device)</button>
         </div>
-        <p id="flashRescueMissing" class="fallback" hidden>Rescue files are not published yet — they land with the
+        <p id="flashRescueMissing" class="fallback" hidden>Install files are not published yet — they land with the
           next Lector release. The Update button above works now.</p>
       </div>
 
@@ -426,8 +430,10 @@
       <ol class="steps">
         <li>Use <strong>Chrome</strong> or <strong>Edge</strong> on a computer — you are already here (Web Serial only).</li>
         <li>Plug the reader into a USB port with a <strong>data</strong> cable.</li>
-        <li>Click <strong>Update my reader</strong> and pick the reader's serial port when asked.</li>
-        <li>Wait for the flash to finish. The reader reboots into the new build on its own.</li>
+        <li>Click <strong>Update my reader</strong> (already running Lector) or <strong>Full install / rescue
+          flash</strong> (a new or dead device), and pick the reader's serial port when asked.</li>
+        <li>Wait for the flash to finish, then reboot the reader by hand: press <strong>Reset</strong>, then
+          <strong>Power</strong>. The X3 / X4 do not auto-reboot over USB.</li>
       </ol>
       <div class="note">Nothing is uploaded to a server. The firmware is served from this site and written to the
         device entirely inside your browser via <strong>esptool-js</strong> (the same engine the official ESP
@@ -442,8 +448,10 @@
         <li><strong>Update</strong> writes <code>boot_app0.bin</code> (OTA data, <code>0xe000</code>) and
           <code>firmware.bin</code> (app, <code>0x10000</code>) <strong>without erasing</strong> — so NVS
           settings and the book storage survive. This is the normal, data-preserving update.</li>
-        <li><strong>Full rescue</strong> erases the chip, then writes the bootloader (<code>0x0</code>), partition
-          table (<code>0x8000</code>), OTA data (<code>0xe000</code>), and app (<code>0x10000</code>).</li>
+        <li><strong>Full install / rescue</strong> erases the chip, then writes the bootloader (<code>0x0</code>),
+          partition table (<code>0x8000</code>), OTA data (<code>0xe000</code>), and app (<code>0x10000</code>). This
+          is what a device without Lector needs — a stock reader has a different partition table, so an app-only
+          Update would not boot.</li>
         <li>One firmware serves <strong>both X3 and X4</strong>; the running code detects the model at boot.</li>
       </ul>
     </details>
@@ -802,8 +810,9 @@ function initFlasher(){
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
   document.getElementById("btnRescue").addEventListener("click",()=>{
-    if(confirm("Full rescue flash ERASES the entire device, including books and settings. "+
-               "Only do this to revive a device that will not boot. Continue?")) runFlash("rescue");
+    if(confirm("Full install / rescue flash ERASES the entire device, including any books and settings in flash. "+
+               "This installs Lector on a new device, or revives one that will not boot. "+
+               "On a brand-new reader there is nothing of yours to lose. Continue?")) runFlash("rescue");
   });
 }
 

@@ -93,6 +93,16 @@ test("version.txt is a plain semantic version", () => {
   assert.match(v, /^\d+\.\d+\.\d+$/);
 });
 
+test("the full-erase flash is presented as a first-time install, not only a rescue", () => {
+  // A device that does not have Lector yet needs the full flash (its stock
+  // partition table differs, so an app-only Update will not boot). That path
+  // must be discoverable as a first-time install, and the Update path must still
+  // state it needs Lector already present.
+  assert.match(html, /Install on a new device/i);
+  assert.match(html, /does not have Lector yet/i);
+  assert.match(html, /already be[\s\S]*?running Lector/i);
+});
+
 test("a completed flash tells the user to reboot by hand", () => {
   // The X3/X4 ignore the USB reset line, so the flasher must NOT claim it is
   // auto-rebooting; it must instruct a manual Reset + Power. Guard against a
