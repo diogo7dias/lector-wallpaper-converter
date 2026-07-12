@@ -62,6 +62,13 @@ test("writes stay compressed — esptool-js 0.5.7 has no uncompressed path", () 
   assert.doesNotMatch(html, /compress\s*:\s*false/);
 });
 
+test("reboot uses loader.after() and never fails a completed flash", () => {
+  // esptool-js 0.5.7 resets via loader.after(), not loader.hardReset().
+  assert.match(html, /loader\.after\(/);
+  // The reset must be wrapped so a reboot hiccup does not report the flash failed.
+  assert.match(html, /catch\s*\(\s*resetErr\s*\)/);
+});
+
 test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /data-view="flash"/);
   assert.match(html, /id="view-flash"/);
