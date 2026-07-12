@@ -1,7 +1,7 @@
 {
   "name": "Lector (full rescue)",
   "version": "0.7.0",
-  "new_install_prompt_erase": true,
+  "erase": true,
   "builds": [
     {
       "chipFamily": "ESP32-C3",
