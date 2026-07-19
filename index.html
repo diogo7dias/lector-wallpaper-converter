@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Lector Wallpaper Converter</title>
+<title>Lector Xteink Firmware</title>
 <script>
   (()=>{
     let saved=null;
@@ -313,10 +313,10 @@
     <div class="masthead">
       <div class="logo"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lector"><g transform="translate(50 50) rotate(-38) scale(1.18) translate(-50 -50)" fill="#0a0a0a"><path d="M35 42 L35 20 L45 20 L45 32 L55 32 L55 20 L65 20 L65 42 Z"/><rect x="44" y="38" width="12" height="30" rx="6"/><circle cx="50" cy="72" r="13"/><circle cx="50" cy="72" r="5.5" fill="#fbf8ef"/></g></svg></div>
       <div style="flex:1;min-width:0">
-        <h1>Lector Wallpaper Converter</h1>
-        <p>Turn any image into a sleep wallpaper for the Lector / CrossPoint reader. It runs entirely in
-           your browser — nothing is uploaded. Pick a screen and format; the best rendering is detected
-           per image.</p>
+        <h1>Lector Xteink Firmware</h1>
+        <p>Flash Lector firmware to your Xteink X3 / X4 reader, and turn any image into a sleep wallpaper —
+           all in your browser, nothing uploaded. Use the <strong>Flasher</strong> tab to install firmware and
+           the <strong>Converter</strong> tab for wallpapers.</p>
       </div>
     </div>
     <div class="rule"></div>
@@ -450,6 +450,14 @@
   <!-- ======================= FLASHER ======================= -->
   <section id="view-flash" role="tabpanel" hidden>
     <div class="panel">
+      <div class="warn"><strong>Both firmwares are ALPHA.</strong> They are works in progress and may have bugs.
+        Your books live on the SD card and are never touched, but settings stored in the device flash can be lost.
+        Use a test device if you can.</div>
+
+      <h3>Lector — main firmware (C++ core, Rust helpers)</h3>
+      <p>The everyday Lector build: the C++ / CrossPoint reader, now with some parts being hardened in Rust for
+        stability. This is the one to run on your daily reader.</p>
+
       <div class="verline">Current build on this site</div>
       <div class="verval"><span class="dim">v</span><span id="flashVersion">…</span></div>
 
@@ -475,6 +483,19 @@
         </div>
         <p id="flashRescueMissing" class="fallback" hidden>Install files are not published yet — they land with the
           next Lector release. The Update button above works now.</p>
+      </div>
+
+      <div class="rescue">
+        <h3>Lector-R — full-Rust firmware (experimental · alpha)</h3>
+        <p>A ground-up rewrite of Lector in <strong>Rust</strong>, aiming to match the Lector look and feel on the
+          same Xteink X3 / X4 hardware. It is <strong>early and unfinished</strong> — expect missing features and rough
+          edges. Try it on a <strong>test device</strong>, not your daily reader.</p>
+        <div class="warn"><strong>Warning:</strong> this does a <strong>full flash</strong> — it <strong>erases
+          everything</strong> in the device flash and installs Lector-R from scratch (it uses its own partition
+          layout). Book files on the SD card are not touched. You can reflash the normal Lector any time.</div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btnLectorR" type="button">Install Lector-R (full Rust, alpha · erases device)</button>
+        </div>
       </div>
 
       <div class="fprog" id="flashProgressWrap" hidden>
@@ -917,6 +938,12 @@ function initFlasher(){
                "This installs Lector on a new device, or revives one that will not boot. "+
                "On a brand-new reader there is nothing of yours to lose. Continue?")) runFlash("rescue");
   });
+  const lr=document.getElementById("btnLectorR");
+  if(lr) lr.addEventListener("click",()=>{
+    if(confirm("Install Lector-R (full Rust, ALPHA). This ERASES the entire device and writes the experimental "+
+               "Rust firmware from scratch. It is unfinished and may not boot or render correctly. Recommended only "+
+               "on a test device, not your daily reader. You can always reflash the normal Lector afterwards. Continue?")) runFlash("lector-r");
+  });
 }
 
 // Convert a byte array to the binary string esptool-js expects, in chunks so we
@@ -935,7 +962,8 @@ async function fetchBinary(path){
 
 async function runFlash(mode){
   if(flashState.busy) return;
-  const erase = mode==="rescue";
+  // Update keeps flash contents; rescue and lector-R do a full erase + write.
+  const erase = mode!=="update";
   const wrap=document.getElementById("flashProgressWrap");
   const bar=document.getElementById("flashBar");
   const statusEl=document.getElementById("flashStatus");
@@ -952,7 +980,10 @@ async function runFlash(mode){
   // Load the parts named by the manifest (paths are relative to /flash/).
   let parts;
   try{
-    const manifest=await (await fetch(erase?"flash/manifest-full.json":"flash/manifest-update.json",{cache:"no-cache"})).json();
+    const manifestPath = mode==="lector-r" ? "flash/manifest-lector-r.json"
+                       : erase ? "flash/manifest-full.json"
+                       : "flash/manifest-update.json";
+    const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
     parts=[];
     for(const p of manifest.builds[0].parts){
       log("load "+p.path);
@@ -1020,6 +1051,7 @@ async function runFlash(mode){
 function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
+  const lr=document.getElementById("btnLectorR"); if(lr) lr.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
