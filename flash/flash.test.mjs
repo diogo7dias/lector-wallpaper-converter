@@ -12,6 +12,7 @@ const update = readJson("./manifest-update.json");
 const full = readJson("./manifest-full.json");
 const lectorR = readJson("./manifest-lector-r.json");
 const lectorRUpdate = readJson("./manifest-lector-r-update.json");
+const lectorA = readJson("./manifest-lector-a.json");
 
 // Flash offsets are dictated by the device partition table (partitions.csv in the
 // lector repo). If these change, the firmware will not boot — treat them as fixed.
@@ -70,6 +71,17 @@ test("Lector-R update writes only the app at 0x10000, no erase", () => {
   assert.match(parts[0].path, /firmware\/lector-r\/latest\/lector-r-app\.bin/);
 });
 
+test("Lector A update = boot_app0 + app, no erase (same layout as Lector)", () => {
+  // Lector A is the C++ build with Rust helpers; it shares Lector's esp-idf
+  // partition layout, so it updates app-only (boot_app0 + firmware), no erase.
+  assert.equal(lectorA.erase, false);
+  const parts = lectorA.builds[0].parts;
+  assert.equal(lectorA.builds[0].chipFamily, "ESP32-C3");
+  const byPath = Object.fromEntries(parts.map((p) => [p.path, p.offset]));
+  assert.equal(byPath["firmware/lector-a/latest/boot_app0.bin"], 0xe000);
+  assert.equal(byPath["firmware/lector-a/latest/firmware.bin"], 0x10000);
+});
+
 test("only full installs erase; every Update mode keeps data", () => {
   // erase is limited to the two full-flash installs (rescue + Lector-R install).
   // The normal Update and the Lector-R app-only update must never erase.
@@ -100,6 +112,8 @@ test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /id="btnRescue"/);
   assert.match(html, /id="btnLectorR"/);
   assert.match(html, /id="btnLectorRUpdate"/);
+  assert.match(html, /id="btnLectorA"/);
+  assert.match(html, /flash\/manifest-lector-a\.json/);
   assert.match(html, /flash\/manifest-update\.json/);
   assert.match(html, /flash\/manifest-full\.json/);
   assert.match(html, /flash\/manifest-lector-r\.json/);

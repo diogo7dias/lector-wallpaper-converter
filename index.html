@@ -470,6 +470,13 @@
         <br><strong>New device?</strong> If your reader does not have Lector yet, use the
         <strong>full install</strong> below instead — Update alone will not work on a stock device.</div>
 
+      <div class="actions">
+        <button class="btn btn-ghost" id="btnLectorA" type="button">Update to Lector A (Rust helpers · alpha)</button>
+      </div>
+      <div class="note"><strong>Lector A</strong> is this same build with a few crash-prone parts
+        (the PNG image decoder) reimplemented in memory-safe <strong>Rust</strong>. Same features, same look —
+        it just fails safe on broken images instead of risking a crash. App-only update, keeps your data. Alpha.</div>
+
       <div class="rescue">
         <h3>Install on a new device — or full rescue</h3>
         <p>Use this if your reader <strong>does not have Lector yet</strong> (fresh from the shop, still on the
@@ -938,6 +945,8 @@ function initFlasher(){
     .catch(()=>{document.getElementById("flashRescueMissing").hidden=false;});
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
+  const la=document.getElementById("btnLectorA");
+  if(la) la.addEventListener("click",()=>runFlash("lector-a"));
   document.getElementById("btnRescue").addEventListener("click",()=>{
     if(confirm("Full install / rescue flash ERASES the entire device, including any books and settings in flash. "+
                "This installs Lector on a new device, or revives one that will not boot. "+
@@ -989,6 +998,7 @@ async function runFlash(mode){
   try{
     const manifestPath = mode==="lector-r" ? "flash/manifest-lector-r.json"
                        : mode==="lector-r-update" ? "flash/manifest-lector-r-update.json"
+                       : mode==="lector-a" ? "flash/manifest-lector-a.json"
                        : erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
@@ -1061,6 +1071,7 @@ function setButtonsDisabled(d){
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
   const lr=document.getElementById("btnLectorR"); if(lr) lr.disabled=d;
   const lru=document.getElementById("btnLectorRUpdate"); if(lru) lru.disabled=d;
+  const la=document.getElementById("btnLectorA"); if(la) la.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.

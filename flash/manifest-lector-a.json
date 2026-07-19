@@ -1,0 +1,20 @@
+{
+  "name": "Lector A (Rust helpers) update",
+  "version": "0.56.0+rust",
+  "erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        {
+          "path": "firmware/lector-a/latest/boot_app0.bin",
+          "offset": 57344
+        },
+        {
+          "path": "firmware/lector-a/latest/firmware.bin",
+          "offset": 65536
+        }
+      ]
+    }
+  ]
+}
