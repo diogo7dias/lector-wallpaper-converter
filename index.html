@@ -475,7 +475,13 @@
       </div>
       <div class="note"><strong>Lector A</strong> is this same build with a few crash-prone parts
         (the PNG image decoder) reimplemented in memory-safe <strong>Rust</strong>. Same features, same look —
-        it just fails safe on broken images instead of risking a crash. App-only update, keeps your data. Alpha.</div>
+        it just fails safe on broken images instead of risking a crash. App-only update, keeps your data. Alpha.
+        <br><strong>What's new — v0.56.1-A:</strong>
+        <ul>
+          <li>PNG image decoder scanline unfilter now runs in memory-safe Rust (byte-exact; verified on 2.5M inputs).</li>
+          <li>Reports version <strong>0.56.1-A</strong> on device so you can tell it apart from plain Lector.</li>
+          <li>Everything else is identical to Lector v0.56.0.</li>
+        </ul>
 
       <div class="rescue">
         <h3>Install on a new device — or full rescue</h3>
@@ -497,6 +503,15 @@
         <p>A ground-up rewrite of Lector in <strong>Rust</strong>, aiming to match the Lector look and feel on the
           same Xteink X3 / X4 hardware. It is <strong>early and unfinished</strong> — expect missing features and rough
           edges. Try it on a <strong>test device</strong>, not your daily reader.</p>
+        <div class="note"><strong>What's new — latest Lector-R:</strong>
+          <ul>
+            <li>UI now uses the Cozette monospace font (home, settings, files, status bars), matching Lector's chrome. Book body stays serif.</li>
+            <li>Focus Bold (bionic) is now OFF by default, matching Lector.</li>
+            <li>Fixed the right-edge text clipping.</li>
+            <li>Book-style paragraphs (first-line indent, no blank line), justified text, and paperback (heavier ink) — all toggleable in Settings.</li>
+            <li>Update button added (app-only, keeps data).</li>
+          </ul>
+          <em>Next: home screen layout (recent books), then PXC sleep images.</em></div>
         <p><strong>Already running Lector-R?</strong> Use <strong>Update</strong> to write just the new app — fast,
           no erase, keeps everything. Use <strong>Install</strong> only the first time, or to recover.</p>
         <div class="actions">
