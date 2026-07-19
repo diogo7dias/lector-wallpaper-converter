@@ -11,6 +11,7 @@ const redirect = read("./index.html");
 const update = readJson("./manifest-update.json");
 const full = readJson("./manifest-full.json");
 const lectorR = readJson("./manifest-lector-r.json");
+const lectorRUpdate = readJson("./manifest-lector-r-update.json");
 
 // Flash offsets are dictated by the device partition table (partitions.csv in the
 // lector repo). If these change, the firmware will not boot — treat them as fixed.
@@ -58,12 +59,21 @@ test("Lector-R manifest is a single merged image at 0x0, erase first", () => {
   assert.match(parts[0].path, /firmware\/lector-r\/latest\/lector-r\.bin/);
 });
 
-test("an Update never erases; rescue and Lector-R do", () => {
-  // Update must never erase (keeps books/settings in flash); the full-rescue and
-  // full-Rust Lector-R installs erase. erase is 'any mode except update', and
-  // writeFlash must pass exactly that flag. Guards against the esp-web-tools
-  // 'fresh install wipes everything' behaviour we moved away from.
-  assert.match(html, /const erase\s*=\s*mode\s*!==\s*"update"/);
+test("Lector-R update writes only the app at 0x10000, no erase", () => {
+  // The no-erase update writes just the app partition; the bootloader and
+  // partition table are already on the device from the initial full install.
+  assert.equal(lectorRUpdate.erase, false);
+  const parts = lectorRUpdate.builds[0].parts;
+  assert.equal(lectorRUpdate.builds[0].chipFamily, "ESP32-C3");
+  assert.equal(parts.length, 1);
+  assert.equal(parts[0].offset, 0x10000);
+  assert.match(parts[0].path, /firmware\/lector-r\/latest\/lector-r-app\.bin/);
+});
+
+test("only full installs erase; every Update mode keeps data", () => {
+  // erase is limited to the two full-flash installs (rescue + Lector-R install).
+  // The normal Update and the Lector-R app-only update must never erase.
+  assert.match(html, /const erase\s*=\s*mode\s*===\s*"rescue"\s*\|\|\s*mode\s*===\s*"lector-r"/);
   assert.match(html, /eraseAll\s*:\s*erase/);
   assert.doesNotMatch(html, /esp-web-tools/);
 });
@@ -89,9 +99,11 @@ test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /id="btnUpdate"/);
   assert.match(html, /id="btnRescue"/);
   assert.match(html, /id="btnLectorR"/);
+  assert.match(html, /id="btnLectorRUpdate"/);
   assert.match(html, /flash\/manifest-update\.json/);
   assert.match(html, /flash\/manifest-full\.json/);
   assert.match(html, /flash\/manifest-lector-r\.json/);
+  assert.match(html, /flash\/manifest-lector-r-update\.json/);
 });
 
 test("Flasher tab opens from a #flash deep link", () => {

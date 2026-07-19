@@ -490,11 +490,16 @@
         <p>A ground-up rewrite of Lector in <strong>Rust</strong>, aiming to match the Lector look and feel on the
           same Xteink X3 / X4 hardware. It is <strong>early and unfinished</strong> — expect missing features and rough
           edges. Try it on a <strong>test device</strong>, not your daily reader.</p>
-        <div class="warn"><strong>Warning:</strong> this does a <strong>full flash</strong> — it <strong>erases
-          everything</strong> in the device flash and installs Lector-R from scratch (it uses its own partition
+        <p><strong>Already running Lector-R?</strong> Use <strong>Update</strong> to write just the new app — fast,
+          no erase, keeps everything. Use <strong>Install</strong> only the first time, or to recover.</p>
+        <div class="actions">
+          <button class="btn btn-red" id="btnLectorRUpdate" type="button">Update Lector-R (app only, keeps data)</button>
+        </div>
+        <div class="warn"><strong>Warning:</strong> <strong>Install</strong> does a <strong>full flash</strong> — it
+          <strong>erases everything</strong> in the device flash and writes Lector-R from scratch (its own partition
           layout). Book files on the SD card are not touched. You can reflash the normal Lector any time.</div>
         <div class="actions">
-          <button class="btn btn-ghost" id="btnLectorR" type="button">Install Lector-R (full Rust, alpha · erases device)</button>
+          <button class="btn btn-ghost" id="btnLectorR" type="button">Install Lector-R (first time / recover · erases device)</button>
         </div>
       </div>
 
@@ -938,6 +943,8 @@ function initFlasher(){
                "This installs Lector on a new device, or revives one that will not boot. "+
                "On a brand-new reader there is nothing of yours to lose. Continue?")) runFlash("rescue");
   });
+  const lru=document.getElementById("btnLectorRUpdate");
+  if(lru) lru.addEventListener("click",()=>runFlash("lector-r-update"));
   const lr=document.getElementById("btnLectorR");
   if(lr) lr.addEventListener("click",()=>{
     if(confirm("Install Lector-R (full Rust, ALPHA). This ERASES the entire device and writes the experimental "+
@@ -962,8 +969,8 @@ async function fetchBinary(path){
 
 async function runFlash(mode){
   if(flashState.busy) return;
-  // Update keeps flash contents; rescue and lector-R do a full erase + write.
-  const erase = mode!=="update";
+  // Full installs erase; the two Update modes keep flash contents (write app only).
+  const erase = mode==="rescue" || mode==="lector-r";
   const wrap=document.getElementById("flashProgressWrap");
   const bar=document.getElementById("flashBar");
   const statusEl=document.getElementById("flashStatus");
@@ -981,6 +988,7 @@ async function runFlash(mode){
   let parts;
   try{
     const manifestPath = mode==="lector-r" ? "flash/manifest-lector-r.json"
+                       : mode==="lector-r-update" ? "flash/manifest-lector-r-update.json"
                        : erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
@@ -1052,6 +1060,7 @@ function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
   const lr=document.getElementById("btnLectorR"); if(lr) lr.disabled=d;
+  const lru=document.getElementById("btnLectorRUpdate"); if(lru) lru.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
