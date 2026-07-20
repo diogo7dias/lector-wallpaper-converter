@@ -471,16 +471,17 @@
         <strong>full install</strong> below instead — Update alone will not work on a stock device.</div>
 
       <div class="actions">
-        <button class="btn btn-ghost" id="btnLectorA" type="button">Update to Lector A v0.56.1-A (Rust helpers · alpha)</button>
+        <button class="btn btn-ghost" id="btnLectorA" type="button">Update to Lector A v0.56.2-A (Rust helpers · alpha)</button>
       </div>
       <div class="note"><strong>Lector A</strong> is this same build with a few crash-prone parts
         (the PNG image decoder) reimplemented in memory-safe <strong>Rust</strong>. Same features, same look —
         it just fails safe on broken images instead of risking a crash. App-only update, keeps your data. Alpha.
-        <br><strong>What's new — v0.56.1-A:</strong>
+        <br><strong>What's new — v0.56.2-A:</strong>
         <ul>
-          <li>PNG image decoder scanline unfilter now runs in memory-safe Rust (byte-exact; verified on 2.5M inputs).</li>
-          <li>Reports version <strong>0.56.1-A</strong> on device so you can tell it apart from plain Lector.</li>
-          <li>Everything else is identical to Lector v0.56.0.</li>
+          <li>Indexing screen: the bottom progress bar now stays on screen the whole time instead of blinking out between updates.</li>
+          <li>Indexing screen: the top banner text is always normal weight now (no more looking bold on some refreshes).</li>
+          <li>Reports version <strong>0.56.2-A</strong> on device so you can tell it apart from plain Lector.</li>
+          <li>Everything else is identical to Lector v0.56.1.</li>
         </ul>
 
       <div class="rescue">
