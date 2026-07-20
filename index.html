@@ -499,65 +499,6 @@
           next Lector release. The Update button above works now.</p>
       </div>
 
-      <div class="rescue">
-        <h3>Lector-R — full-Rust firmware (experimental · alpha)</h3>
-        <p>A ground-up rewrite of Lector in <strong>Rust</strong>, aiming to match the Lector look and feel on the
-          same Xteink X3 / X4 hardware. It is <strong>early and unfinished</strong> — expect missing features and rough
-          edges. Try it on a <strong>test device</strong>, not your daily reader.</p>
-        <div class="note"><strong>What's new — latest Lector-R:</strong>
-          <ul>
-            <li><strong>Settings · Reader tab — Guide Dots.</strong> New toggle like the original Lector: turn <strong>Guide Dots</strong> on and a small dot is drawn between each pair of words as a reading guide. Default off leaves your pages exactly as they were.</li>
-            <li><strong>Settings · Reader tab — First-Line Indent + Extra Paragraph Spacing.</strong> The single "Book Paras" setting is now split into the original Lector's separate controls: <strong>First-Line Indent</strong> (Book, or Custom % — pick a percent and a new <strong>First-Line Indent %</strong> slider appears) and <strong>Extra Paragraph Spacing</strong> (on by default = a blank line between paragraphs; turn off for a tight book look). Defaults keep your pages exactly as they were. If you had "Book Paras" on before, it carries over as Custom indent + no blank line.</li>
-            <li><strong>Settings · Reader tab — Images mode + Bionic Reading label.</strong> New <strong>Images</strong> picker like the original Lector: <strong>Display</strong> (default, show pictures as now), <strong>Placeholder</strong> (draw an empty box where a picture would be), or <strong>Suppress</strong> (skip pictures entirely so text flows past them) — handy for faster page turns on image-heavy books. Also, the "Focus Bold" row is now named <strong>Bionic Reading</strong> to match the original (same feature: bolds the front of each word).</li>
-            <li><strong>Settings · Reader tab — Word Spacing.</strong> New slider like the original Lector: <strong>Reader Word Spacing</strong> (−30% to +300%, front « » 10%, side buttons 50%) tightens or opens up the space between words. Default 0% leaves your pages exactly as they were. (Paragraph Spacing is coming in its own update — it needs a bigger change to how pages are laid out vertically.)</li>
-            <li><strong>Settings · Reader tab — Paragraph Alignment (5 ways).</strong> The old Justify on/off is now a full alignment picker like the original Lector: <strong>Justify</strong> (default), <strong>Left</strong>, <strong>Center</strong>, <strong>Right</strong>, and <strong>Book's Style</strong>. Press Confirm on the row and pick. (Book's Style currently reads as Justify — honoring each book's own alignment comes with the Embedded Style setting later.) Your existing setting carries over: justified stays Justify, left-aligned becomes Left.</li>
-            <li><strong>Settings · Reader tab — Uniform Margins + Top/Bottom Margin.</strong> Like the original Lector: <strong>Uniform Margins</strong> (on by default) uses one margin on every side; turn it off and two new sliders appear, <strong>Top Margin</strong> and <strong>Bottom Margin</strong> (0–100, « » 1, side buttons 10), for independent top/bottom spacing. Small note: to match the original exactly, the reading page now has a 5px top and bottom margin (it was 0 before), so text sits very slightly lower — set the margins to 0 if you want it flush like before.</li>
-            <li><strong>Settings · Reader tab — Line Spacing &amp; Screen Margin sliders (Theme replaced).</strong> To match the original Lector exactly, the old <strong>Theme</strong> preset row is gone, replaced by two independent sliders like the original: <strong>Reader Line Spacing</strong> (35–150%, front « » nudge 5%, side buttons 25%) and <strong>Reader Screen Margin</strong> (0–100, « » 1, side buttons 10). Press Confirm on either row to open a full-screen slider with a live bar; Select saves, Back cancels. Defaults (100% spacing, 5px margin) render the page identically to before, so your books look the same until you change them.</li>
-            <li><strong>Settings · Reader tab — started, with a proper option picker.</strong> Reader is a big tab, so it is being filled in one setting at a time like Display was. First up: <strong>Reader Font Size</strong> now opens a full-screen list picker (like the original Lector) instead of only nudging in place — press the front Confirm button on the row, pick 12 / 13 / 14 / 15 / 16 from the list, and it shows "Selected" next to the current size. This same picker will power every other choose-from-a-list setting in the Reader tab as they are added.</li>
-            <li><strong>Grayscale sleep images (Sleep Image Quality).</strong> New Settings → Display option: <strong>Fast</strong> (1-bit, default) or <strong>Pretty</strong>. Pretty renders PXC sleep wallpapers in true 4-level grayscale using the same multi-pass e-ink waveform as the original Lector, so photos look smooth instead of dithered. This is new and unverified on device — Fast stays the default; try Pretty and switch back if it misbehaves. <strong>This completes the Display settings tab.</strong></li>
-            <li><strong>Sunlight Fading Fix.</strong> New Settings → Display toggle (on by default). On, Lector-R powers the screen's high-voltage drivers off after each refresh (helps against image fading/ghosting in strong sunlight and heat, and saves power); off leaves them powered between refreshes, like the original Lector's default.</li>
-            <li><strong>Quick Resume.</strong> New Settings → Display option: set <strong>Sleep Screen = Quick Resume</strong>, or turn on <strong>Quick Resume</strong> (on timeout), and when the device sleeps while you are reading it leaves your page on the screen instead of a sleep image, so waking shows your book instantly.</li>
-            <li><strong>PXC sleep images now match the original Lector.</strong> Lector-R was flattening the two middle gray tones to plain black/white; it now uses the same 2×2 ordered-dither the original Lector uses on a 1-bit screen (pure black and white stay, the mid greys become a fine dither pattern), so a <code>.pxc</code> wallpaper looks the same. (The original's full 4-level grayscale sleep screen still needs Lector-R's grayscale display mode, which is a later step; image orientation still needs a device photo to confirm.)</li>
-            <li><strong>Sleep footer text + on-screen keyboard.</strong> Settings → Display → <strong>Sleep Footer</strong> opens a full on-screen keyboard so you can type your own sleep-screen footer line (empty = the default "READ UNTIL YOU DIE."). Side buttons move key by key, front « » jump a whole row, Confirm types, Del backspaces, OK saves, Back cancels. (This keyboard will also power Wi-Fi and account logins later.)</li>
-            <li><strong>BMP sleep wallpapers.</strong> New <strong>Wallpaper Format</strong> setting (Settings → Display): PXC (default) or BMP. Set it to BMP and Lector-R reads <code>.bmp</code> images from the SD <code>/sleep</code> folder (24/32/8/1-bit, uncompressed) for the sleep screen, alongside the existing PXC support.</li>
-            <li><strong>Book covers.</strong> Lector-R now reads the cover image out of your EPUB. Set <strong>Sleep Screen = Cover</strong> to show the current book's cover when it sleeps, or <strong>Home Layout = Single Cover</strong> to show it on the home screen. <strong>Sleep Cover Mode</strong> is Fit (whole cover, letterboxed) or Crop (fill the screen); <strong>Cover Filter</strong> can invert it. The cover is decoded once when a book opens and cached, so sleeping is fast. (Cover Filter "Contrast" is a placeholder for now; it acts like None until grayscale covers are added.)</li>
-            <li><strong>Settings · Display tab — two more settings.</strong> <strong>Hide Battery</strong> (Never / In Reader / Always) hides the battery reading, and <strong>Sleep Filename</strong> shows the current sleep image's filename on the sleep screen (Custom mode). Six Display settings now work; the rest (cover images, favourites, keyboard footer, grayscale, and more) each need a new engine and are being built one at a time.</li>
-            <li><strong>Settings · Display tab — first real settings.</strong> Four work now, like the original Lector: <strong>Sleep Screen</strong> (Dark / Light / Custom sleep images / None), <strong>Refresh Frequency</strong> (1 / 5 / 10 / 15 / 30 pages between full screen refreshes), <strong>Browser Order</strong> (Alphabetical or Random), and <strong>Random on Boot</strong> (open a random recent book at power-on). Note: the sleep screen now defaults to <strong>Dark</strong> like the original — set it to "Custom" to see your /sleep images again.</li>
-            <li><strong>Settings screen rebuilt with the original Lector's 4 tabs</strong> — Display, Reader, Controls, System — across the top, sized like the original (tab bar, 30px rows, header with version). Use the front Confirm button on the tab row to switch tabs, the side buttons to move between settings, and « » to change a value. This is the first step; each tab's full set of settings is being filled in and made to work one by one.</li>
-            <li><strong>EPUB reading page now matches the original Lector.</strong> Body text is rendered at the same larger Bookerly size (so a page holds about the same number of lines), paragraphs are separated by a blank line with no first-line indent (instead of the old indented/tight style), line spacing is 100%, side margins are ~5px, chapter headings are bold at body size (no longer enlarged), and illustrations can fill the page instead of being capped at 40% height. The book look (first-line indent, no blank line) is still available as a toggle in Settings.</li>
-            <li>Going up a folder now puts the cursor back on the folder you just came out of, like the original Lector, instead of jumping to the top of the list.</li>
-            <li>Removed the Bookmarks screen from Home (the menu is now Browse Files / Settings / File Transfer). Books still resume at the page where you left off — that part is automatic and unchanged.</li>
-            <li>File browser now shows <strong>folders</strong> and lets you navigate them, like the original Lector. Folders appear as <code>[name]</code> and sort to the top; Confirm enters a folder, Back goes up one level (and leaves the browser at the top level), and holding Back jumps straight back to the SD root. Books inside folders open, resume, and remember their bookmark/progress independently — a book in <code>/SciFi</code> and one with the same name in <code>/Fantasy</code> keep separate reading positions, exactly like Lector.</li>
-            <li>File browser now reads the real long filenames from the SD card (e.g. "The Savage Detectives.epub") instead of the cut-off 8.3 name ("Savag~29.epu"). The header reads "SD card (N)" with battery, the extension is right-aligned, the bottom bar reads "« Home | Open | Up | Down", and it lists the same file types as the original Lector (.epub, .xtc, .txt, .md, .pxc, .bmp).</li>
-            <li>Long chapter titles in the status bar now wrap over multiple lines (up to 4) instead of getting cut off with "..", like the original Lector, and when a long title needs the space, the battery/page beside it move to the opposite side of the bar (or hide) — the exact reflow the original Lector does. The reading area shifts to make room.</li>
-            <li>Status bar now matches the original Lector 1:1 and is fully configurable in Settings. Every element (battery, clock, title, page, book %, chapter %, chapter number, and edge progress bars) can be placed at any of the six corners/centers (Top-L/C/R, Bot-L/C/R) or turned Off. Defaults match Lector exactly: battery bottom-left, chapter title bottom-center, page + book% bottom-right.</li>
-            <li>Page buttons now match the original Lector: the front Left/Right buttons turn pages (Left = previous, Right = next), like the side buttons. They no longer jump chapters. Chapter jumps live in the Power menu (Prev Ch / Next Ch / Contents).</li>
-            <li>Justified text now matches the original Lector exactly: every full line is stretched to the margins except the last line of each paragraph (and headings), which stay ragged — instead of the old guess that left some full lines ragged.</li>
-            <li>Reader status bar rebuilt to match the original Lector: it now sits at the <strong>bottom</strong> and shows a battery icon + charge %, the chapter title (centered), and the page (<code>3/40</code>) with book percent (<code>B:20%</code>) at the right. Body text now uses the reclaimed space at the top.</li>
-            <li>PXC sleep wallpapers: drop <code>.pxc</code> files in the SD <code>/sleep</code> folder and they now show on the sleep screen (rotates through them each sleep). No files there = the plain "(sleep)" screen as before.</li>
-            <li>Recent titles now wrap over as many lines as needed (no clipping) and show "by Author".</li>
-            <li>Top bar shows Lector [R] + a session "Pages" read count + battery.</li>
-            <li>Home now shows a recent-books list with [NN%] progress badges (fills as you open books), above the boxed menu buttons — like Lector.</li>
-            <li>Home screen reshaped toward Lector: top bar (name + battery) and boxed menu buttons (Browse Files / Bookmarks / Settings / File Transfer).</li>
-            <li>UI now uses the Cozette monospace font (home, settings, files, status bars), matching Lector's chrome. Book body stays serif.</li>
-            <li>Focus Bold (bionic) is now OFF by default, matching Lector.</li>
-            <li>Fixed the right-edge text clipping.</li>
-            <li>Book-style paragraphs (first-line indent, no blank line), justified text, and paperback (heavier ink) — all toggleable in Settings.</li>
-            <li>Update button added (app-only, keeps data).</li>
-          </ul>
-          <em>Next: sleep-image polish (orientation/threshold from device photos), then a clock (needs a time source).</em></div>
-        <p><strong>Already running Lector-R?</strong> Use <strong>Update</strong> to write just the new app — fast,
-          no erase, keeps everything. Use <strong>Install</strong> only the first time, or to recover.</p>
-        <div class="actions">
-          <button class="btn btn-red" id="btnLectorRUpdate" type="button">Update Lector-R (app only, keeps data)</button>
-        </div>
-        <div class="warn"><strong>Warning:</strong> <strong>Install</strong> does a <strong>full flash</strong> — it
-          <strong>erases everything</strong> in the device flash and writes Lector-R from scratch (its own partition
-          layout). Book files on the SD card are not touched. You can reflash the normal Lector any time.</div>
-        <div class="actions">
-          <button class="btn btn-ghost" id="btnLectorR" type="button">Install Lector-R (first time / recover · erases device)</button>
-        </div>
-      </div>
 
       <div class="fprog" id="flashProgressWrap" hidden>
         <div class="fbar"><div class="fbar-fill" id="flashBar"></div></div>
@@ -1001,14 +942,6 @@ function initFlasher(){
                "This installs Lector on a new device, or revives one that will not boot. "+
                "On a brand-new reader there is nothing of yours to lose. Continue?")) runFlash("rescue");
   });
-  const lru=document.getElementById("btnLectorRUpdate");
-  if(lru) lru.addEventListener("click",()=>runFlash("lector-r-update"));
-  const lr=document.getElementById("btnLectorR");
-  if(lr) lr.addEventListener("click",()=>{
-    if(confirm("Install Lector-R (full Rust, ALPHA). This ERASES the entire device and writes the experimental "+
-               "Rust firmware from scratch. It is unfinished and may not boot or render correctly. Recommended only "+
-               "on a test device, not your daily reader. You can always reflash the normal Lector afterwards. Continue?")) runFlash("lector-r");
-  });
 }
 
 // Convert a byte array to the binary string esptool-js expects, in chunks so we
@@ -1028,7 +961,7 @@ async function fetchBinary(path){
 async function runFlash(mode){
   if(flashState.busy) return;
   // Full installs erase; the two Update modes keep flash contents (write app only).
-  const erase = mode==="rescue" || mode==="lector-r";
+  const erase = mode==="rescue";
   const wrap=document.getElementById("flashProgressWrap");
   const bar=document.getElementById("flashBar");
   const statusEl=document.getElementById("flashStatus");
@@ -1045,9 +978,7 @@ async function runFlash(mode){
   // Load the parts named by the manifest (paths are relative to /flash/).
   let parts;
   try{
-    const manifestPath = mode==="lector-r" ? "flash/manifest-lector-r.json"
-                       : mode==="lector-r-update" ? "flash/manifest-lector-r-update.json"
-                       : mode==="lector-a" ? "flash/manifest-lector-a.json"
+    const manifestPath = mode==="lector-a" ? "flash/manifest-lector-a.json"
                        : erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
@@ -1118,8 +1049,6 @@ async function runFlash(mode){
 function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
-  const lr=document.getElementById("btnLectorR"); if(lr) lr.disabled=d;
-  const lru=document.getElementById("btnLectorRUpdate"); if(lru) lru.disabled=d;
   const la=document.getElementById("btnLectorA"); if(la) la.disabled=d;
 }
 

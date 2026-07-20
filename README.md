@@ -3,8 +3,8 @@
 A single-page, in-browser hub for the [Lector / CrossPoint](https://github.com/diogo7dias/lector)
 Xteink X3 / X4 e-ink reader. Two tools, no uploads:
 
-- **Flasher** — install firmware over USB (Web Serial). Two alpha builds: the main **Lector**
-  (C++ core with Rust helpers) and the experimental full-Rust **[Lector-R](https://github.com/diogo7dias/lector-r)**.
+- **Flasher** — install firmware over USB (Web Serial): the main **Lector** and the
+  **Lector A** build (C++ core with Rust helpers).
 - **Converter** — turn any image into a sleep wallpaper as a device-ready **`.pxc`** (packed
   2-bit) or **`.bmp`** (2-bit grayscale) file.
 
