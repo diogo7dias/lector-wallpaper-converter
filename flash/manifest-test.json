@@ -1,0 +1,14 @@
+{
+  "name": "Lector TEST build (eager full-book index)",
+  "version": "0.57.0-idx",
+  "erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        { "path": "firmware/test/latest/boot_app0.bin", "offset": 57344 },
+        { "path": "firmware/test/latest/firmware.bin", "offset": 65536 }
+      ]
+    }
+  ]
+}

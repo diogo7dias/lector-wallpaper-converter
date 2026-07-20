@@ -492,6 +492,17 @@
           next Lector release. The Update button above works now.</p>
       </div>
 
+      <div class="rescue">
+        <h3>Test build — eager whole-book indexing (experimental)</h3>
+        <p>An <strong>unreleased test build</strong> for one feature: when you open a book it indexes the
+          <strong>whole book up front</strong> (with an "Indexing" bar), so page flips are consistent everywhere
+          afterward. Reports version <strong>0.57.0-idx</strong> on device so you can tell it apart. App-only update,
+          keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave the test.</p>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (eager index) v0.57.0-idx</button>
+        </div>
+      </div>
+
 
       <div class="fprog" id="flashProgressWrap" hidden>
         <div class="fbar"><div class="fbar-fill" id="flashBar"></div></div>
@@ -929,6 +940,11 @@ function initFlasher(){
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
   // Update serves the current Lector build (the C++ core + Rust helpers).
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("lector-a"));
+  const bt=document.getElementById("btnTest");
+  if(bt) bt.addEventListener("click",()=>{
+    if(confirm("Flash the EXPERIMENTAL test build (eager whole-book indexing, v0.57.0-idx). App-only, keeps your data. "+
+               "Flash 'Update my reader' (0.56.5) to go back. Continue?")) runFlash("test");
+  });
   document.getElementById("btnRescue").addEventListener("click",()=>{
     if(confirm("Full install / rescue flash ERASES the entire device, including any books and settings in flash. "+
                "This installs Lector on a new device, or revives one that will not boot. "+
@@ -970,7 +986,8 @@ async function runFlash(mode){
   // Load the parts named by the manifest (paths are relative to /flash/).
   let parts;
   try{
-    const manifestPath = mode==="lector-a" ? "flash/manifest-lector-a.json"
+    const manifestPath = mode==="test" ? "flash/manifest-test.json"
+                       : mode==="lector-a" ? "flash/manifest-lector-a.json"
                        : erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
@@ -1041,6 +1058,7 @@ async function runFlash(mode){
 function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
+  const bt=document.getElementById("btnTest"); if(bt) bt.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
