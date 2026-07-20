@@ -47,8 +47,8 @@ test("full manifest reflashes all four parts at the correct offsets, erase first
   );
 });
 
-test("Lector A update = boot_app0 + app, no erase (same layout as Lector)", () => {
-  // Lector A is the C++ build with Rust helpers; it shares Lector's esp-idf
+test("Lector update = boot_app0 + app, no erase", () => {
+  // The Lector update (C++ core + Rust helpers) shares Lector's esp-idf
   // partition layout, so it updates app-only (boot_app0 + firmware), no erase.
   assert.equal(lectorA.erase, false);
   const parts = lectorA.builds[0].parts;
@@ -60,7 +60,7 @@ test("Lector A update = boot_app0 + app, no erase (same layout as Lector)", () =
 
 test("only full installs erase; every Update mode keeps data", () => {
   // erase is limited to the full-flash install (rescue). Every Update mode
-  // (normal, Lector A) must never erase.
+  // (the app-only Lector update) must never erase.
   assert.match(html, /const erase\s*=\s*mode\s*===\s*"rescue"/);
   assert.match(html, /eraseAll\s*:\s*erase/);
   assert.doesNotMatch(html, /esp-web-tools/);
@@ -86,7 +86,6 @@ test("page exposes the Flasher tab wired to esptool-js", () => {
   assert.match(html, /esptool-js@0\.5\.7\/bundle\.js/);
   assert.match(html, /id="btnUpdate"/);
   assert.match(html, /id="btnRescue"/);
-  assert.match(html, /id="btnLectorA"/);
   assert.match(html, /flash\/manifest-lector-a\.json/);
   assert.match(html, /flash\/manifest-update\.json/);
   assert.match(html, /flash\/manifest-full\.json/);

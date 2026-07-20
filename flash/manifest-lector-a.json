@@ -1,6 +1,6 @@
 {
-  "name": "Lector A (Rust helpers) update",
-  "version": "0.56.3-A",
+  "name": "Lector update",
+  "version": "0.56.3",
   "erase": false,
   "builds": [
     {

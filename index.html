@@ -454,9 +454,9 @@
         Your books live on the SD card and are never touched, but settings stored in the device flash can be lost.
         Use a test device if you can.</div>
 
-      <h3>Lector — main firmware (C++ core, Rust helpers)</h3>
-      <p>The everyday Lector build: the C++ / CrossPoint reader, now with some parts being hardened in Rust for
-        stability. This is the one to run on your daily reader.</p>
+      <h3>Lector</h3>
+      <p>The everyday Lector firmware for your Xteink X3 / X4 — the C++ / CrossPoint reader, with some internals
+        hardened in memory-safe Rust for stability. This is the one to run on your daily reader.</p>
 
       <div class="verline">Current build on this site</div>
       <div class="verval"><span class="dim">v</span><span id="flashVersion">…</span></div>
@@ -466,22 +466,15 @@
       </div>
       <div class="note"><strong>Update</strong> writes only the app and resets the boot selector. Your books,
         settings, and Wi-Fi are <strong>kept</strong> — nothing is erased. Your reader must <strong>already be
-        running Lector / CrossPoint</strong>. Takes about 30–60 seconds.
+        running Lector</strong>. Takes about 30–60 seconds.
         <br><strong>New device?</strong> If your reader does not have Lector yet, use the
-        <strong>full install</strong> below instead — Update alone will not work on a stock device.</div>
-
-      <div class="actions">
-        <button class="btn btn-ghost" id="btnLectorA" type="button">Update to Lector A v0.56.3-A (Rust helpers · alpha)</button>
-      </div>
-      <div class="note"><strong>Lector A</strong> is this same build with a few crash-prone parts
-        (the PNG image decoder) reimplemented in memory-safe <strong>Rust</strong>. Same features, same look —
-        it just fails safe on broken images instead of risking a crash. App-only update, keeps your data. Alpha.
-        <br><strong>What's new — v0.56.3-A:</strong>
+        <strong>full install</strong> below instead — Update alone will not work on a stock device.
+        <br><strong>What's new — v0.56.3:</strong>
         <ul>
           <li><strong>Button presses during a screen refresh are no longer lost.</strong> A full e-ink refresh freezes the screen for a second or two; a button pressed in that window used to be silently dropped (the old "act within 0.5s or discard" rule). Now a press made during a refresh is caught and acted on the moment the refresh finishes, so buttons feel far more reliable. Page turns pressed while a chapter is still building are honored the same way. Hold-gestures (hold Confirm/Back) are unchanged.</li>
-          <li>Reports version <strong>0.56.3-A</strong> on device.</li>
-          <li>Everything else is identical to Lector v0.56.2.</li>
+          <li>Reports version <strong>0.56.3</strong> on device.</li>
         </ul>
+      </div>
 
       <div class="rescue">
         <h3>Install on a new device — or full rescue</h3>
@@ -933,9 +926,8 @@ function initFlasher(){
     .then(r=>{if(!r.ok) throw 0;})
     .catch(()=>{document.getElementById("flashRescueMissing").hidden=false;});
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
-  document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
-  const la=document.getElementById("btnLectorA");
-  if(la) la.addEventListener("click",()=>runFlash("lector-a"));
+  // Update serves the current Lector build (the C++ core + Rust helpers).
+  document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("lector-a"));
   document.getElementById("btnRescue").addEventListener("click",()=>{
     if(confirm("Full install / rescue flash ERASES the entire device, including any books and settings in flash. "+
                "This installs Lector on a new device, or revives one that will not boot. "+
@@ -1048,7 +1040,6 @@ async function runFlash(mode){
 function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
-  const la=document.getElementById("btnLectorA"); if(la) la.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
