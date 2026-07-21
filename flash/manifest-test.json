@@ -1,6 +1,6 @@
 {
-  "name": "Lector TEST build (per-book reader settings)",
-  "version": "0.57.0-perbook",
+  "name": "Lector TEST build (wolfSSL TLS 1.3: KOSync + OPDS + OTA)",
+  "version": "0.57.0-wolfssl",
   "erase": false,
   "builds": [
     {

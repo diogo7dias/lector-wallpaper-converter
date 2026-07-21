@@ -493,15 +493,15 @@
       </div>
 
       <div class="rescue">
-        <h3>Test build — per-book reader settings (experimental)</h3>
-        <p>An <strong>unreleased test build</strong> for one feature: each book can now have its <strong>own reader
-          settings</strong>. Open a book, in-book menu &rarr; <strong>Reader Settings</strong>, change font/margins/etc:
-          only that book changes. Global settings still drive every un-customized book. A <strong>Reset Reader
-          Settings</strong> row reverts a book to global. Reports version <strong>0.57.0-perbook</strong> on device.
-          App-only update, keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave
-          the test.</p>
+        <h3>Test build — wolfSSL TLS 1.3 (KOSync + OPDS + OTA) (experimental)</h3>
+        <p>An <strong>unreleased test build</strong> that moves every secure connection to a new TLS 1.3 engine
+          (wolfSSL). This fixes KOReader-sync servers that failed the handshake before, and hardens OPDS + firmware
+          updates. <strong>Please test:</strong> (1) KOReader Sync &rarr; Authenticate + sync a book; (2) open an
+          <strong>OPDS</strong> server, browse, and <strong>download a book</strong> (expect it downloads and opens);
+          (3) optional/last: Check for updates. Reports version <strong>0.57.0-wolfssl</strong> on device. App-only
+          update, keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave the test.</p>
         <div class="actions">
-          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (per-book settings) v0.57.0-perbook</button>
+          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (wolfSSL TLS 1.3) v0.57.0-wolfssl</button>
         </div>
       </div>
 
@@ -944,7 +944,7 @@ function initFlasher(){
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("lector-a"));
   const bt=document.getElementById("btnTest");
   if(bt) bt.addEventListener("click",()=>{
-    if(confirm("Flash the EXPERIMENTAL test build (per-book reader settings, v0.57.0-perbook). App-only, keeps your data. "+
+    if(confirm("Flash the EXPERIMENTAL test build (wolfSSL TLS 1.3: KOSync + OPDS + OTA, v0.57.0-wolfssl). App-only, keeps your data. "+
                "Flash 'Update my reader' (0.56.5) to go back. Continue?")) runFlash("test");
   });
   document.getElementById("btnRescue").addEventListener("click",()=>{
