@@ -1,6 +1,6 @@
 {
-  "name": "Lector TEST build (eager full-book index)",
-  "version": "0.57.0-idx",
+  "name": "Lector TEST build (per-book reader settings)",
+  "version": "0.57.0-perbook",
   "erase": false,
   "builds": [
     {

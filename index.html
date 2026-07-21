@@ -493,13 +493,15 @@
       </div>
 
       <div class="rescue">
-        <h3>Test build — eager whole-book indexing (experimental)</h3>
-        <p>An <strong>unreleased test build</strong> for one feature: when you open a book it indexes the
-          <strong>whole book up front</strong> (with an "Indexing" bar), so page flips are consistent everywhere
-          afterward. Reports version <strong>0.57.0-idx</strong> on device so you can tell it apart. App-only update,
-          keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave the test.</p>
+        <h3>Test build — per-book reader settings (experimental)</h3>
+        <p>An <strong>unreleased test build</strong> for one feature: each book can now have its <strong>own reader
+          settings</strong>. Open a book, in-book menu &rarr; <strong>Reader Settings</strong>, change font/margins/etc:
+          only that book changes. Global settings still drive every un-customized book. A <strong>Reset Reader
+          Settings</strong> row reverts a book to global. Reports version <strong>0.57.0-perbook</strong> on device.
+          App-only update, keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave
+          the test.</p>
         <div class="actions">
-          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (eager index) v0.57.0-idx</button>
+          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (per-book settings) v0.57.0-perbook</button>
         </div>
       </div>
 
@@ -942,7 +944,7 @@ function initFlasher(){
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("lector-a"));
   const bt=document.getElementById("btnTest");
   if(bt) bt.addEventListener("click",()=>{
-    if(confirm("Flash the EXPERIMENTAL test build (eager whole-book indexing, v0.57.0-idx). App-only, keeps your data. "+
+    if(confirm("Flash the EXPERIMENTAL test build (per-book reader settings, v0.57.0-perbook). App-only, keeps your data. "+
                "Flash 'Update my reader' (0.56.5) to go back. Continue?")) runFlash("test");
   });
   document.getElementById("btnRescue").addEventListener("click",()=>{
