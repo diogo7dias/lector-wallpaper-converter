@@ -941,7 +941,7 @@ function initFlasher(){
     .catch(()=>{document.getElementById("flashRescueMissing").hidden=false;});
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
   // Update serves the current Lector build (the C++ core + Rust helpers).
-  document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("lector-a"));
+  document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
   const bt=document.getElementById("btnTest");
   if(bt) bt.addEventListener("click",()=>{
     if(confirm("Flash the EXPERIMENTAL test build (wolfSSL TLS 1.3: KOSync + OPDS + OTA, v0.57.0-wolfssl). App-only, keeps your data. "+
@@ -989,7 +989,6 @@ async function runFlash(mode){
   let parts;
   try{
     const manifestPath = mode==="test" ? "flash/manifest-test.json"
-                       : mode==="lector-a" ? "flash/manifest-lector-a.json"
                        : erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
