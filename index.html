@@ -469,11 +469,11 @@
         running Lector</strong>. Takes about 30–60 seconds.
         <br><strong>New device?</strong> If your reader does not have Lector yet, use the
         <strong>full install</strong> below instead — Update alone will not work on a stock device.
-        <br><strong>What's new — v0.56.4:</strong>
+        <br><strong>What's new — v0.61.0:</strong>
         <ul>
-          <li><strong>Home screen: a little breathing room</strong> between the top status bar and the first book in the recents list (it was sitting flush against the bar).</li>
-          <li><strong>Button presses during a screen refresh are no longer lost.</strong> A full e-ink refresh freezes the screen for a second or two; a button pressed in that window used to be silently dropped (the old "act within 0.5s or discard" rule). Now a press made during a refresh is caught and acted on the moment the refresh finishes, so buttons feel far more reliable. Page turns pressed while a chapter is still building are honored the same way. Hold-gestures (hold Confirm/Back) are unchanged.</li>
-          <li>Reports version <strong>0.56.4</strong> on device.</li>
+          <li><strong>Internal stability and code-health release.</strong> Reading, menus, and page turns behave exactly as before; a batch of engine internals were consolidated and de-duplicated so the same rule lives in one place instead of many.</li>
+          <li><strong>Web + WebDAV file interface hardened.</strong> The browser file manager and WebDAV now share one path-safety check, and replacing a book over WebDAV no longer leaves a stale layout cache behind.</li>
+          <li>Reports version <strong>0.61.0</strong> on device.</li>
         </ul>
       </div>
 
@@ -491,20 +491,6 @@
         <p id="flashRescueMissing" class="fallback" hidden>Install files are not published yet — they land with the
           next Lector release. The Update button above works now.</p>
       </div>
-
-      <div class="rescue">
-        <h3>Test build — wolfSSL TLS 1.3 (KOSync + OPDS + OTA) (experimental)</h3>
-        <p>An <strong>unreleased test build</strong> that moves every secure connection to a new TLS 1.3 engine
-          (wolfSSL). This fixes KOReader-sync servers that failed the handshake before, and hardens OPDS + firmware
-          updates. <strong>Please test:</strong> (1) KOReader Sync &rarr; Authenticate + sync a book; (2) open an
-          <strong>OPDS</strong> server, browse, and <strong>download a book</strong> (expect it downloads and opens);
-          (3) optional/last: Check for updates. Reports version <strong>0.57.0-wolfssl</strong> on device. App-only
-          update, keeps your data. Flash back to <strong>Update my reader</strong> (0.56.5) any time to leave the test.</p>
-        <div class="actions">
-          <button class="btn btn-ghost" id="btnTest" type="button">Flash TEST build (wolfSSL TLS 1.3) v0.57.0-wolfssl</button>
-        </div>
-      </div>
-
 
       <div class="fprog" id="flashProgressWrap" hidden>
         <div class="fbar"><div class="fbar-fill" id="flashBar"></div></div>
@@ -546,12 +532,12 @@
     </details>
 
     <div class="panel whatsnew">
-      <h3>What's new in v0.56.0</h3>
+      <h3>What's new in v0.61.0</h3>
       <ul>
-        <li>All progress bars (indexing, cover and image loading) now show as a thick bar at the bottom of the screen.</li>
-        <li>Fixed a page-turn crash — double-tapping during a slow refresh no longer reboots.</li>
-        <li>Fixed reboots when clearing the cache or opening very large folders.</li>
-        <li>Hardened against malformed books and covers.</li>
+        <li>Internal stability and code-health release — no change to how the reader behaves day to day.</li>
+        <li>Consolidated several engine internals (layout cache key, screen-refresh intent, Wi-Fi teardown, settings schema) so each rule lives in one place.</li>
+        <li>Web + WebDAV file manager share one path-safety check; overwriting a book over WebDAV no longer strands a stale layout cache.</li>
+        <li>Removed a dead module to save flash and reduce clutter.</li>
       </ul>
     </div>
   </section>
@@ -942,11 +928,6 @@ function initFlasher(){
   if(!("serial" in navigator)){ document.getElementById("flashUnsupported").hidden=false; }
   // Update serves the current Lector build (the C++ core + Rust helpers).
   document.getElementById("btnUpdate").addEventListener("click",()=>runFlash("update"));
-  const bt=document.getElementById("btnTest");
-  if(bt) bt.addEventListener("click",()=>{
-    if(confirm("Flash the EXPERIMENTAL test build (wolfSSL TLS 1.3: KOSync + OPDS + OTA, v0.57.0-wolfssl). App-only, keeps your data. "+
-               "Flash 'Update my reader' (0.56.5) to go back. Continue?")) runFlash("test");
-  });
   document.getElementById("btnRescue").addEventListener("click",()=>{
     if(confirm("Full install / rescue flash ERASES the entire device, including any books and settings in flash. "+
                "This installs Lector on a new device, or revives one that will not boot. "+
@@ -988,8 +969,7 @@ async function runFlash(mode){
   // Load the parts named by the manifest (paths are relative to /flash/).
   let parts;
   try{
-    const manifestPath = mode==="test" ? "flash/manifest-test.json"
-                       : erase ? "flash/manifest-full.json"
+    const manifestPath = erase ? "flash/manifest-full.json"
                        : "flash/manifest-update.json";
     const manifest=await (await fetch(manifestPath,{cache:"no-cache"})).json();
     parts=[];
@@ -1059,7 +1039,6 @@ async function runFlash(mode){
 function setButtonsDisabled(d){
   const u=document.getElementById("btnUpdate"); if(u) u.disabled=d;
   const r=document.getElementById("btnRescue"); if(r) r.disabled=d;
-  const bt=document.getElementById("btnTest"); if(bt) bt.disabled=d;
 }
 
 // Deep link: /#flash (or a redirect from /flash/) opens the Flasher tab directly.
