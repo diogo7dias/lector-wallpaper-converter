@@ -503,11 +503,12 @@
         running Lector</strong>. Takes about 30–60 seconds.
         <br><strong>New device?</strong> If your reader does not have Lector yet, use the
         <strong>full install</strong> below instead — Update alone will not work on a stock device.
-        <br><strong>What's new — v0.61.0:</strong>
+        <br><strong>What's new — v0.64.0:</strong>
         <ul>
-          <li><strong>Internal stability and code-health release.</strong> Reading, menus, and page turns behave exactly as before; a batch of engine internals were consolidated and de-duplicated so the same rule lives in one place instead of many.</li>
-          <li><strong>Web + WebDAV file interface hardened.</strong> The browser file manager and WebDAV now share one path-safety check, and replacing a book over WebDAV no longer leaves a stale layout cache behind.</li>
-          <li>Reports version <strong>0.61.0</strong> on device.</li>
+          <li><strong>A full file manager in your browser.</strong> Connect over Wi-Fi and manage the SD card: upload and download books, make folders, and rename, move, or delete files and whole folders.</li>
+          <li><strong>Access-code lock.</strong> The reader shows a 4-digit code on its screen; type it once in the browser to unlock. The same code mounts the SD as a network drive (WebDAV).</li>
+          <li><strong>OPDS in the browser.</strong> Add a catalog, browse it, and download books straight onto the SD.</li>
+          <li>A clean black-and-white look across every page. Reports version <strong>0.64.0</strong> on device.</li>
         </ul>
       </div>
 
@@ -566,12 +567,13 @@
     </details>
 
     <div class="panel whatsnew">
-      <h3>What's new in v0.61.0</h3>
+      <h3>What's new in v0.64.0</h3>
       <ul>
-        <li>Internal stability and code-health release — no change to how the reader behaves day to day.</li>
-        <li>Consolidated several engine internals (layout cache key, screen-refresh intent, Wi-Fi teardown, settings schema) so each rule lives in one place.</li>
-        <li>Web + WebDAV file manager share one path-safety check; overwriting a book over WebDAV no longer strands a stale layout cache.</li>
-        <li>Removed a dead module to save flash and reduce clutter.</li>
+        <li><strong>Browser file manager, over Wi-Fi.</strong> Browse the SD card, upload and download books, create folders, and rename / move / delete files and whole folders — recursive folder delete shows the file count first.</li>
+        <li><strong>Per-session access code.</strong> A 4-digit code shown on the reader unlocks the browser; the same code gates WebDAV drive mounts. The file server is no longer open on the network.</li>
+        <li><strong>OPDS built in.</strong> Add and browse OPDS catalogs and download books to the SD, straight from the browser.</li>
+        <li><strong>New "Ledger" look.</strong> Every web page — and this site — is now a compact black-and-white theme with a dark mode.</li>
+        <li>Path-safety hardening across all upload routes; dropped the old in-browser EPUB re-zip (the Converter tab covers it) to slim the firmware.</li>
       </ul>
     </div>
   </section>
