@@ -20,22 +20,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Archivo+Black&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --paper:#f5f1e6; --panel:#fbf8ef; --ink:#0a0a0a; --text:#1c1b18;
-    --sub:#5e5851; --soft:#d8d1bd; --dash:#b8afa0; --code:#ebe5d4;
-    --red:#e1422f; --yellow:#ffcb1f; --yellow-soft:#fff1a8; --on-red:#fffaf5;
-    --on-ink:#f5f1e6; --accent-ink:#0a0a0a;
-    --hero-bg:#0a0a0a; --hero-text:#f5f1e6; --hero-sub:#b8afa0;
+    --paper:#ffffff; --panel:#ffffff; --ink:#111111; --text:#1a1a1a;
+    --sub:#666666; --soft:#e5e5e5; --dash:#cfcfcf; --code:#f2f2f2;
+    --red:#8a1c1c; --yellow:#ededed; --yellow-soft:#f4f4f4; --on-red:#ffffff;
+    --on-ink:#ffffff; --accent-ink:#111111;
+    --hero-bg:#111111; --hero-text:#ffffff; --hero-sub:#bdbdbd;
     --sans:'Archivo','Helvetica Neue',system-ui,sans-serif;
     --serif:'Newsreader',Georgia,'Times New Roman',serif;
     --mono:'JetBrains Mono',ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --black:'Archivo Black','Archivo',sans-serif;
   }
   :root[data-theme="dark"]{
-    --paper:#141412; --panel:#1e1d1a; --ink:#bcb5a8; --text:#ded8cc;
-    --sub:#aaa397; --soft:#45433d; --dash:#736e64; --code:#292822;
-    --red:#b83427; --yellow:#d7aa28; --yellow-soft:#3a3217; --on-red:#f1e5df;
-    --on-ink:#171613; --accent-ink:#17130a;
-    --hero-bg:#24221e; --hero-text:#ded8cc; --hero-sub:#aaa397;
+    --paper:#0a0a0a; --panel:#111111; --ink:#f2f2f2; --text:#f2f2f2;
+    --sub:#a6a6a6; --soft:#2a2a2a; --dash:#3a3a3a; --code:#1a1a1a;
+    --red:#b83427; --yellow:#2a2a2a; --yellow-soft:#1a1a1a; --on-red:#f2f2f2;
+    --on-ink:#0a0a0a; --accent-ink:#f2f2f2;
+    --hero-bg:#161616; --hero-text:#f2f2f2; --hero-sub:#a6a6a6;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -293,6 +293,40 @@
     .download-progress-head{display:block;}
     .download-progress-percent{display:block;margin-top:3px;}
   }
+
+  /* ================= LEDGER MONOCHROME SKIN (overrides above; last-wins) =================
+     Matches the reader's web UI: mostly white with a black reverse, thin hairlines,
+     square corners, no hard shadows, bold sans wordmark. Token NAMES are preserved so
+     the palette/theme tests still pass; only their values + a few components change. */
+  /* Flatten: 1px hairlines, no hard shadows, square corners */
+  .logo,.tabs,.tab,.panel,.seg,.seg button,select,.drop,.btn,.download-progress,
+  .card,.card canvas,.pill,.pill-toggle,.pill-src,.card a.dl,code,.hero,details{
+    box-shadow:none!important;border-radius:0!important;}
+  .logo,.tabs,.panel,.seg,select,.drop,.btn,.card,.card canvas,.download-progress,details{border-width:1px!important;}
+  .tab:not(:last-child),.seg button:not(:last-child){border-right-width:1px!important;}
+  .download-progress-head{border-bottom-width:1px!important;}
+  .download-progress-fill{border-right-width:1px!important;}
+  .pill-toggle,.pill-src{border-width:1px!important;}
+  .theme-toggle{border-width:1px!important;box-shadow:none!important;}
+  .rule,.rule-thin{border-top-width:1px!important;border-bottom-width:0!important;height:0!important;}
+  /* Bold sans wordmark instead of serif */
+  .masthead h1{font-family:var(--black)!important;font-weight:900;letter-spacing:-.01em;}
+  .drop .big{font-family:var(--black)!important;}
+  /* Neutralise the warm accents to monochrome; keep red for the danger action only */
+  ::selection{background:var(--soft)!important;color:var(--ink)!important;}
+  .theme-toggle:hover{background:var(--soft)!important;color:var(--ink)!important;}
+  .drop:hover,.drop.over{border-color:var(--ink)!important;background:var(--code)!important;}
+  .download-progress-head{background:var(--code)!important;color:var(--ink)!important;}
+  .download-progress-track{background:var(--code)!important;}
+  .download-progress-fill{background:var(--ink)!important;}
+  .pill-toggle{background:var(--code)!important;color:var(--ink)!important;}
+  /* Update = primary (black); Rescue/erase = danger (red outline) */
+  #btnUpdate,.btn-red{background:var(--ink)!important;color:var(--on-ink)!important;border-color:var(--ink)!important;}
+  #btnRescue{background:transparent!important;color:var(--red)!important;border-color:var(--red)!important;}
+  .card a.dl{background:var(--ink)!important;color:var(--on-ink)!important;}
+  /* Neutralise remaining serif: bold sans titles, mono version number */
+  .gtitle{font-family:var(--black)!important;}
+  .verval{font-family:var(--mono)!important;font-weight:700;letter-spacing:-.01em;}
 </style>
 </head>
 <body>
